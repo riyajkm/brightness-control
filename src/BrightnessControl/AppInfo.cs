@@ -12,9 +12,18 @@ namespace BrightnessControl
 
         // Settings and the log live here. Packaged apps get their own folder; writing to %LOCALAPPDATA%
         // from a package is silently redirected, so other programs (e.g. Notepad) wouldn't find the files.
-        public static readonly string DataFolder = IsPackaged
-            ? Windows.Storage.ApplicationData.Current.LocalFolder.Path
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BrightnessControl");
+        public static readonly string DataFolder = ChooseDataFolder();
+
+        static string ChooseDataFolder()
+        {
+            if (IsPackaged)
+            {
+                // Never let this stop the app from starting: Log and Settings both depend on it.
+                try { return Windows.Storage.ApplicationData.Current.LocalFolder.Path; }
+                catch { }
+            }
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BrightnessControl");
+        }
 
         static bool DetectPackaged()
         {
