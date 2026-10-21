@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSIX manifest for Brightness Control. build-msix.ps1 fills in the $TOKENS$.
+  IDENTITY_NAME / PUBLISHER / PUBLISHER_DISPLAY_NAME must match Partner Center
+  (Product management > Product identity) for Store uploads.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap5 rescap">
+
+  <Identity
+    Name="$IDENTITY_NAME$"
+    Publisher="$PUBLISHER$"
+    Version="$VERSION$"
+    ProcessorArchitecture="$ARCH$" />
+
+  <Properties>
+    <DisplayName>Brightness Control</DisplayName>
+    <PublisherDisplayName>$PUBLISHER_DISPLAY_NAME$</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Change brightness on every screen from the taskbar: external monitors over DDC/CI and the laptop screen.</Description>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="BrightnessControl" Executable="BrightnessControl.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Brightness Control"
+        Description="Change brightness on every screen from the taskbar."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <!-- TaskId must match App.StartupTaskId. Off until the user turns on "Start with Windows". -->
+        <uap5:Extension Category="windows.startupTask">
+          <uap5:StartupTask TaskId="BrightnessControlStartup" Enabled="false" DisplayName="Brightness Control" />
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Full-trust desktop app: needed for DDC/CI (dxva2.dll) and WMI. -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
