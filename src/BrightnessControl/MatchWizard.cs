@@ -21,7 +21,6 @@ namespace BrightnessControl
         readonly Label step;
         readonly Button next, cancel;
         int stepIndex;
-        bool saved;
 
         public static bool CanRun(List<Screen2> screens)
         {
@@ -140,14 +139,13 @@ namespace BrightnessControl
             }
             Settings.Current.MatchBrightness = true;
             Settings.Current.Save();
-            saved = true;
             Close();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             foreach (var p in patches) p.Close();
-            if (!saved) foreach (var kv in original) kv.Key.Set(kv.Value);   // cancelled: put everything back
+            foreach (var kv in original) kv.Key.Set(kv.Value);   // saved or cancelled: put everything back
             base.OnFormClosed(e);
         }
 

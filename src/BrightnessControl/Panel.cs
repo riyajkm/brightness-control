@@ -36,7 +36,6 @@ namespace BrightnessControl
             ShowInTaskbar = false;
             TopMost = true;
             StartPosition = FormStartPosition.Manual;
-            KeyPreview = true;
             Text = "Brightness";
 
             list = new FlowLayoutPanel
@@ -55,10 +54,15 @@ namespace BrightnessControl
             get { var cp = base.CreateParams; cp.ClassStyle |= 0x20000; /* drop shadow */ return cp; }
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
+        // Esc closes the panel, unless it's closing an open dropdown.
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (e.KeyCode == Keys.Escape) { Hide(); e.Handled = true; }
-            base.OnKeyDown(e);
+            if (keyData == Keys.Escape)
+            {
+                var combo = ActiveControl as ComboBox;
+                if (combo == null || !combo.DroppedDown) { Hide(); return true; }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -229,7 +233,7 @@ namespace BrightnessControl
             title.Location = new Point(0, S(2));
             var more = MakeIconButton("", "More options");
             more.Location = new Point(width - more.Width, S(4));
-            more.Click += delegate { if (MoreMenu != null) MoreMenu.Show(more, new Point(0, more.Height)); };
+            more.Click += delegate { if (MoreMenu != null) MoreMenu.Show(more, new Point(more.Width, more.Height), ToolStripDropDownDirection.BelowLeft); };
             header.Controls.Add(title);
             header.Controls.Add(more);
             return header;
@@ -543,10 +547,14 @@ namespace BrightnessControl
         }
 
         // Presets and the "All screens" slider set a shared level (matched per screen).
+        // Applied to every row directly: going through allSlider.Value would do nothing when the All slider
+        // already shows this level as an average of screens that differ.
         public void SetAll(int level)
         {
-            if (allSlider != null) { allSlider.Value = level; return; }
+            linking = true;
             foreach (var r in rows) if (r.Slider.Enabled) r.Slider.Value = Matching.ToPercent(Matching.CurveFor(r.Screen), level);
+            linking = false;
+            if (allSlider != null) { allSlider.SetSilently(level); allValue.Text = level + "%"; }
         }
 
         // The laptop screen changed by itself (keys, adaptive brightness): bring the other screens along.
