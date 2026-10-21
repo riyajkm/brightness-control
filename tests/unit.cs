@@ -5,10 +5,10 @@
 #:property Nullable=disable
 #:package System.Management@10.0.0
 // Unit tests for the capabilities parser and brightness-matching curves, against the built app.
-// Usage (from the repo root, after build.ps1):  dotnet run --file tests/unit.cs -- bin/BrightnessControl.dll
+// Usage (from the repo root, after build.ps1):  dotnet run --file tests/unit.cs -- bin/DisplayControl.dll
 using System; using System.Collections; using System.Collections.Generic; using System.Linq; using System.Reflection;
-var asm = Assembly.LoadFrom(System.IO.Path.GetFullPath(args.Length > 0 ? args[0] : "bin/BrightnessControl.dll"));
-var C = asm.GetType("BrightnessControl.Capabilities");
+var asm = Assembly.LoadFrom(System.IO.Path.GetFullPath(args.Length > 0 ? args[0] : "bin/DisplayControl.dll"));
+var C = asm.GetType("DisplayControl.Capabilities");
 int fails = 0;
 void Check(string what, bool ok) { Console.WriteLine((ok ? "PASS " : "FAIL ") + what); if (!ok) fails++; }
 string Dump(object caps) {
@@ -42,7 +42,7 @@ Check("empty string", Dump(Parse("")) == "");
 Check("garbage", Dump(Parse("vcp(10 12 1")) == "10 12");
 Check("nested list", Dump(Parse("vcp(14(05 08(01 02) 0B) 10)")) == "14(05 08 0B) 10");
 
-var M = asm.GetType("BrightnessControl.Matching");
+var M = asm.GetType("DisplayControl.Matching");
 List<int[]> Make(params int[][] p) => (List<int[]>)M.GetMethod("MakeCurve").Invoke(null, new object[] { p.ToList() });
 int ToP(List<int[]> c, int l) => (int)M.GetMethod("ToPercent").Invoke(null, new object[] { c, l });
 int ToL(List<int[]> c, int p) => (int)M.GetMethod("ToLevel").Invoke(null, new object[] { c, p });
@@ -57,7 +57,7 @@ var bad = Make(new[] { 80, 30 }, new[] { 30, 50 });  // user set bright lower th
 Check("monotonic fix", bad[0][0] == 30 && bad[1][1] > bad[0][1]);
 var flat = Make(new[] { 30, 50 }, new[] { 30, 50 });
 Check("duplicate level fixed", flat[1][0] > flat[0][0]);
-var CB = asm.GetType("BrightnessControl.ColorBalance");
+var CB = asm.GetType("DisplayControl.ColorBalance");
 double[] Mult(int w, int t) { var a = new object[] { w, t, 0.0, 0.0, 0.0 }; CB.GetMethod("Multipliers").Invoke(null, a); return new[] { (double)a[2], (double)a[3], (double)a[4] }; }
 var n = Mult(0, 0); Check("colour neutral = 1/1/1", n[0] == 1 && n[1] == 1 && n[2] == 1);
 var warm = Mult(50, 0); Check("warmer cuts blue, keeps red", warm[0] == 1 && warm[2] < 0.8);
@@ -70,11 +70,11 @@ Check("glued vcp tag still parsed", Dump(Parse("(prot(monitor)model(X)MStarvcp(1
 Check("standalone tag preferred over glued", Dump(Parse("(xvcp(02)vcp(10 12))")) == "10 12");
 var triple = Make(new[] { 50, 10 }, new[] { 50, 20 }, new[] { 50, 30 });
 Check("three equal levels become strictly rising", triple[0][0] < triple[1][0] && triple[1][0] < triple[2][0]);
-var ST = asm.GetType("BrightnessControl.Screen2");
+var ST = asm.GetType("DisplayControl.Screen2");
 var screensList = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(ST));
 object Scr(string name, int left) { var o = Activator.CreateInstance(ST); ST.GetField("Name").SetValue(o, name); ST.GetField("Bounds").SetValue(o, new System.Drawing.Rectangle(left, 0, 100, 100)); screensList.Add(o); return o; }
 var right = Scr("DELL U2720Q", 2000); var lap = Scr("Laptop screen", -1920); var left = Scr("DELL U2720Q", 0);
-asm.GetType("BrightnessControl.Monitors").GetMethod("NameDuplicates", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { screensList });
+asm.GetType("DisplayControl.Monitors").GetMethod("NameDuplicates", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { screensList });
 string NameOf(object o) => (string)ST.GetField("Name").GetValue(o);
 Check("identical monitors numbered left to right", NameOf(left) == "DELL U2720Q (1)" && NameOf(right) == "DELL U2720Q (2)");
 Check("unique names unchanged", NameOf(lap) == "Laptop screen");

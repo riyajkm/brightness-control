@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     class App : ApplicationContext
     {
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        const string RunName = "BrightnessControl";
-        const string StartupTaskId = "BrightnessControlStartup";   // must match Package.appxmanifest
-        const string RepoUrl = "https://github.com/riyajkm/brightness-control";
+        const string RunName = "DisplayControl";
+        const string OldRunName = "BrightnessControl";   // the app's name before 1.0.1
+        const string StartupTaskId = "DisplayControlStartup";   // must match Package.appxmanifest
+        const string RepoUrl = "https://github.com/riyajkm/display-control";
 
         readonly NotifyIcon tray;
         readonly Panel panel;
@@ -58,7 +59,7 @@ namespace BrightnessControl
             tray = new NotifyIcon
             {
                 Icon = MakeIcon(),
-                Text = "Brightness Control",
+                Text = "Display Control",
                 Visible = true,
                 ContextMenuStrip = menu
             };
@@ -71,6 +72,7 @@ namespace BrightnessControl
             SystemEvents.PowerModeChanged += OnPowerModeChanged;
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             LaptopWatcher.Changed += OnLaptopChanged;
+            MigrateStartup();
             if (Settings.Current.FollowLaptop) LaptopWatcher.Start();
             RefreshScreens();
         }
@@ -83,7 +85,7 @@ namespace BrightnessControl
             errorShown = true;
             panel.BeginInvoke((MethodInvoker)delegate
             {
-                tray.ShowBalloonTip(6000, "Brightness Control hit a problem",
+                tray.ShowBalloonTip(6000, "Display Control hit a problem",
                     "It's still running. Details are in the detection log (right-click the tray icon > Open detection log).", ToolTipIcon.Warning);
             });
         }
@@ -157,7 +159,7 @@ namespace BrightnessControl
                     foreach (var s in screens) s.LoadCapabilities();
                     ColorBalance.ReapplySoftware(screens);   // gamma ramps don't survive display changes
                     panel.Build(screens);
-                    tray.Text = "Brightness Control - " + screens.Count + " screen" + (screens.Count == 1 ? "" : "s");
+                    tray.Text = "Display Control - " + screens.Count + " screen" + (screens.Count == 1 ? "" : "s");
                     detecting = false;
                     if (detectAgain) { detectAgain = false; RefreshScreens(); }
                     else if (!Settings.Current.FirstRunDone) FirstRun();
@@ -171,8 +173,8 @@ namespace BrightnessControl
             Settings.Current.FirstRunDone = true;
             Settings.Current.Save();
             ShowPanel(TrayCorner());
-            tray.ShowBalloonTip(8000, "Brightness Control is running",
-                "Click the sun icon in the taskbar to change brightness. Don't see it? Click ^ next to the clock and drag the sun onto the taskbar.",
+            tray.ShowBalloonTip(8000, "Display Control is running",
+                "Click the monitor icon in the taskbar to control your screens. Don't see it? Click ^ next to the clock and drag it onto the taskbar.",
                 ToolTipIcon.Info);
         }
 
@@ -276,20 +278,37 @@ namespace BrightnessControl
                 try { Process.Start(start); return; }
                 catch (Exception e) { last = e; }
             }
-            MessageBox.Show("Couldn't open " + Log.FilePath + "\n\n" + last.Message, "Brightness Control");
+            MessageBox.Show("Couldn't open " + Log.FilePath + "\n\n" + last.Message, "Display Control");
         }
 
         static void ShowAbout()
         {
             var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             var answer = MessageBox.Show(
-                "Brightness Control " + version.ToString(3) + "\n\n" +
-                "Controls brightness on every screen: external monitors over DDC/CI, laptop screens through Windows.\n" +
+                "Display Control " + version.ToString(3) + "\n\n" +
+                "Brightness, colour and settings for every screen: external monitors over DDC/CI, laptop screens through Windows.\n" +
                 "Collects no data and needs no internet connection.\n\n" +
                 "Open the project page?",
-                "About Brightness Control", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                "About Display Control", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (answer == DialogResult.Yes)
                 try { Process.Start(new ProcessStartInfo(RepoUrl) { UseShellExecute = true }); } catch { }
+        }
+
+        // Someone who had "Start with Windows" on under the old name keeps it, pointing at this exe.
+        static void MigrateStartup()
+        {
+            if (AppInfo.IsPackaged) return;
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(RunKey, true))
+                {
+                    if (k == null || k.GetValue(OldRunName) == null) return;
+                    k.DeleteValue(OldRunName, false);
+                    k.SetValue(RunName, "\"" + Application.ExecutablePath + "\"");
+                    Log.Write("Start with Windows moved to the new name");
+                }
+            }
+            catch (Exception e) { Log.Write("Couldn't move Start with Windows: " + e.Message); }
         }
 
         // Packaged (Store) builds use the manifest's StartupTask, which shows up in Settings > Apps > Startup.
@@ -323,7 +342,7 @@ namespace BrightnessControl
                     {
                         var state = await task.RequestEnableAsync();
                         if (state == Windows.ApplicationModel.StartupTaskState.DisabledByUser)
-                            MessageBox.Show("Starting with Windows was turned off in Settings. Turn it back on under Settings > Apps > Startup.", "Brightness Control");
+                            MessageBox.Show("Starting with Windows was turned off in Settings. Turn it back on under Settings > Apps > Startup.", "Display Control");
                     }
                 }
                 else
@@ -349,18 +368,22 @@ namespace BrightnessControl
                 {
                     g.SmoothingMode = SmoothingMode.AntiAlias;
                     g.Clear(Color.Transparent);
-                    using (var pen = new Pen(color, 2.6f) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+                    using (var pen = new Pen(color, 2.6f) { LineJoin = LineJoin.Round })
+                    using (var b = new SolidBrush(color))
                     {
-                        for (int i = 0; i < 8; i++)
-                        {
-                            double a = i * Math.PI / 4;
-                            float x1 = 16 + (float)Math.Cos(a) * 10.5f, y1 = 16 + (float)Math.Sin(a) * 10.5f;
-                            float x2 = 16 + (float)Math.Cos(a) * 14.5f, y2 = 16 + (float)Math.Sin(a) * 14.5f;
-                            g.DrawLine(pen, x1, y1, x2, y2);
-                        }
-                        g.DrawEllipse(pen, 9.5f, 9.5f, 13, 13);
+                        // Monitor outline with a stand, and a small sun on the screen.
+                        g.DrawRectangle(pen, 2.3f, 3.3f, 27.4f, 18.4f);
+                        g.FillRectangle(b, 14.5f, 21.5f, 3f, 4.5f);
+                        g.FillRectangle(b, 9f, 26f, 14f, 2.6f);
+                        g.FillEllipse(b, 12f, 8.5f, 8f, 8f);
+                        using (var ray = new Pen(color, 1.8f) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+                            for (int i = 0; i < 8; i++)
+                            {
+                                double a = i * Math.PI / 4;
+                                g.DrawLine(ray, 16 + (float)Math.Cos(a) * 6f, 12.5f + (float)Math.Sin(a) * 6f,
+                                                16 + (float)Math.Cos(a) * 7.2f, 12.5f + (float)Math.Sin(a) * 7.2f);
+                            }
                     }
-                    using (var b = new SolidBrush(color)) g.FillPie(b, 9.5f, 9.5f, 13, 13, 90, 180);
                 }
                 IntPtr h = bmp.GetHicon();
                 var icon = (Icon)Icon.FromHandle(h).Clone();

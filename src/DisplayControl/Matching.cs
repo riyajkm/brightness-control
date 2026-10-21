@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Brightness matching: one shared "level" (0-100) maps to a different % on each monitor, so screens with
     // different maximum brightness look alike. Each monitor's curve comes from the match wizard as

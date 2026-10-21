@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // A monitor's MCCS capabilities string, e.g.
     //   (prot(monitor)type(LCD)model(VA2759SMH)cmds(01 02 03)vcp(02 10 12 14(01 05 08) 60(11 0F))mccs_ver(2.2))

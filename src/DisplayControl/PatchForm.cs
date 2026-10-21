@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // A plain colour square with the screen's name, used by the match wizards to compare screens. Never takes focus.
     class PatchForm : Form

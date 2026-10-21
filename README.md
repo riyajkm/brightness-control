@@ -1,8 +1,10 @@
-# Brightness Control
+# Display Control
 
-**Brightness and colour for every screen, from the Windows taskbar.** External monitors, the laptop screen, all at once or one by one, without reaching for the monitor's buttons.
+**Brightness, colour and settings for every screen, from the Windows taskbar.** External monitors and the laptop screen, all at once or one by one, without reaching for the monitor's buttons.
 
-![Brightness Control in dark and light theme](docs/images/hero.png)
+*Formerly **Brightness Control**. Updating keeps your settings.*
+
+![Display Control in dark and light theme](docs/images/hero.png)
 
 - **Every screen in one place.** External monitors are controlled over **DDC/CI**, the laptop screen through Windows.
 - **All screens slider** and **Night / Evening / Day / Max** presets.
@@ -20,18 +22,20 @@ Requires Windows 10 (version 1809 or later) or Windows 11.
 
 ### Download (portable)
 
-1. Open the [latest release](https://github.com/riyajkm/brightness-control/releases/latest) and download the zip for your PC:
-   - `BrightnessControl-…-win-x64.zip` for most PCs (Intel / AMD).
-   - `BrightnessControl-…-win-arm64.zip` for ARM laptops (Snapdragon).
+1. Open the [latest release](https://github.com/riyajkm/display-control/releases/latest) and download the zip for your PC:
+   - `DisplayControl-…-win-x64.zip` for most PCs (Intel / AMD).
+   - `DisplayControl-…-win-arm64.zip` for ARM laptops (Snapdragon).
 
    Not sure? Settings > System > About > *System type*.
-2. Unzip it to a folder you'll keep, for example `%LOCALAPPDATA%\Programs\Brightness Control` (paste that into File Explorer's address bar).
-3. Double-click **BrightnessControl.exe**. Nothing else to install; .NET is built in.
+2. Unzip it to a folder you'll keep, for example `%LOCALAPPDATA%\Programs\Display Control` (paste that into File Explorer's address bar).
+3. Double-click **DisplayControl.exe**. Nothing else to install; .NET is built in.
 4. Windows may show **"Windows protected your PC"** because the download is new and not yet signed. Click **More info > Run anyway**.
-5. The panel opens and a sun icon appears in the taskbar. If you don't see the icon, click **^** next to the clock and drag the sun onto the taskbar.
-6. Optional: right-click the sun and turn on **Start with Windows**.
+5. The panel opens and the Display Control icon (a monitor with a sun) appears in the taskbar. If you don't see it, click **^** next to the clock and drag it onto the taskbar.
+6. Optional: right-click the icon and turn on **Start with Windows**.
 
-To uninstall, choose **Exit** from the tray menu, delete the folder, and delete `%LOCALAPPDATA%\BrightnessControl` (settings and log).
+To uninstall, choose **Exit** from the tray menu, delete the folder, and delete `%LOCALAPPDATA%\DisplayControl` (settings and log).
+
+**Updating from Brightness Control 1.0.0?** Choose **Exit** in the old app, delete its folder, then run Display Control. Your calibrations, colour matching and *Start with Windows* carry over automatically. The old `%LOCALAPPDATA%\BrightnessControl` folder can be deleted afterwards.
 
 ### Microsoft Store
 
@@ -49,13 +53,13 @@ Most monitors support this, but some have it switched off. In each external moni
 
 ### The panel
 
-Click the sun icon to open the panel. Each screen gets a slider; **All screens** moves them together, and the presets set everything in one click.
+Click the Display Control icon in the taskbar to open the panel. Each screen gets a slider; **All screens** moves them together, and the presets set everything in one click.
 
 <img src="docs/images/panel.png" alt="The brightness panel" width="340">
 
 - Drag a slider, scroll on it with the mouse wheel, or use the keyboard: arrows, Page Up / Page Down, Home / End.
 - Esc or clicking elsewhere closes the panel.
-- Right-click the sun icon, or use **⋯** in the panel, for everything else:
+- Right-click the icon, or use **⋯** in the panel, for everything else:
 
 <img src="docs/images/menu.png" alt="The menu" width="345">
 
@@ -100,21 +104,21 @@ Turn on **Follow laptop brightness**. When you press the laptop's brightness key
 
 ## Troubleshooting
 
-- **A monitor is missing or says "Not answering yet".** Check the monitor menu steps above, then right-click the sun icon and choose **Refresh screens**. Opening the panel also re-checks.
+- **A monitor is missing or says "Not answering yet".** Check the monitor menu steps above, then right-click the Display Control icon and choose **Refresh screens**. Opening the panel also re-checks.
 - **A monitor ignores brightness changes.** Its ECO or picture mode may lock brightness. Switch it to *Standard* in the monitor's menu.
-- **Find out what happened.** Right-click the sun icon and choose **Open detection log**. It lists every screen Windows reports and what each one answered. Attach it to an issue if you need help.
+- **Find out what happened.** Right-click the Display Control icon and choose **Open detection log**. It lists every screen Windows reports and what each one answered. Attach it to an issue if you need help.
 - **Colours of the laptop screen change back.** Windows Night Light and some other apps adjust the same colour output. Opening the panel re-applies your matched colours.
 
-Questions or problems: [open an issue](https://github.com/riyajkm/brightness-control/issues).
+Questions or problems: [open an issue](https://github.com/riyajkm/display-control/issues).
 
 ## Build from source
 
 Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (`winget install Microsoft.DotNet.SDK.10`).
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\build.ps1          # bin\BrightnessControl.exe
+powershell -ExecutionPolicy Bypass -File .\build.ps1          # bin\DisplayControl.exe
 powershell -ExecutionPolicy Bypass -File .\build-release.ps1  # dist\*.zip portable downloads
-dotnet run --file tests/unit.cs -- bin/BrightnessControl.dll   # unit tests
+dotnet run --file tests/unit.cs -- bin/DisplayControl.dll   # unit tests
 ```
 
 ### Microsoft Store package
@@ -131,7 +135,7 @@ powershell -ExecutionPolicy Bypass -File .\build-msix.ps1 -IdentityName "<Packag
     -DisplayName "<the app name you reserved>"
 ```
 
-Output: `dist\BrightnessControl_<version>.msixbundle` (x64 + arm64, self-contained) to upload to Partner Center. The Store signs it. Listing text is in [docs/store-listing.md](docs/store-listing.md). Icons are generated by `dotnet run --file tools/make-assets.cs`.
+Output: `dist\DisplayControl_<version>.msixbundle` (x64 + arm64, self-contained) to upload to Partner Center. The Store signs it. Listing text is in [docs/store-listing.md](docs/store-listing.md). Icons are generated by `dotnet run --file tools/make-assets.cs`.
 
 ## Roadmap
 
@@ -150,7 +154,7 @@ Research notes: [docs/feature-research.md](docs/feature-research.md).
 ## Layout
 
 ```
-src/BrightnessControl/          app source (.NET 10, Windows Forms), one class per file
+src/DisplayControl/          app source (.NET 10, Windows Forms), one class per file
   Monitors.cs, Screen2.cs       detection and per-screen DDC/CI / WMI I/O
   Capabilities.cs               MCCS capabilities parser
   Matching.cs, MatchWizard.cs   brightness matching

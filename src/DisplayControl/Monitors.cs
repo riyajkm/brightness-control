@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     static class Monitors
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Colour matching: a per-screen white balance (warmth and tint, -50..50) so whites look alike across screens.
     // Monitors that accept RGB gain over DDC/CI are adjusted in hardware (best quality). Everything else - laptop

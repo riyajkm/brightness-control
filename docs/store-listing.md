@@ -1,4 +1,4 @@
-# Microsoft Store listing: Brightness Control 1.0.0
+# Microsoft Store listing: Display Control 1.0.1
 
 Copy-paste text for Partner Center (Store listings > English). Text inside the grey blocks goes into the fields as-is. Partner Center fields are plain text: no Markdown, HTML or URLs in the description, and no manual bullets in Product features or Additional system requirements (the Store adds bullets itself).
 
@@ -11,14 +11,16 @@ Limits below are from Microsoft Learn, checked 21 October 2026:
 ## Product name
 
 ```text
-Brightness Control
+Display Control
 ```
 
-The name has to be reserved in Partner Center first (Apps and games > New product > MSIX or PWA app), and it must match the `DisplayName` in the package manifest. "Brightness Control" is a generic phrase and may already be reserved by someone else. If it is, try these in order:
+The name has to be reserved in Partner Center first (Apps and games > New product > MSIX or PWA app), and it must match the `DisplayName` in the package manifest. "Display Control" is a generic phrase and may already be reserved by someone else. If it is, try these in order:
 
-1. `Brightness Control for Monitors`
-2. `Screen Brightness Control`
-3. `Brightness Control - DDC/CI`
+1. `Display Control: Brightness & Colour`
+2. `Display Control for Monitors`
+3. `Display Control - DDC/CI`
+
+The first also helps search, because the Store matches mostly on the name.
 
 If you reserve a different name, build the package with it: `build-msix.ps1 ... -DisplayName "<reserved name>"` (see the README). That fills in all three display names in the manifest.
 
@@ -29,7 +31,7 @@ If you reserve a different name, build the package with it: `build-msix.ps1 ... 
 Limit: 1,000 characters. Some Store views show only the first 270, so this is kept under that (about 200).
 
 ```text
-Change the brightness of every screen from the system tray: external monitors over DDC/CI and your laptop screen, with one slider each or one for all. No monitor buttons, no account, no data collection.
+Control brightness, colour and settings of every screen from the system tray: external monitors over DDC/CI and your laptop screen, with one slider each or one for all. No monitor buttons, no account, no data collection.
 ```
 
 ---
@@ -39,12 +41,12 @@ Change the brightness of every screen from the system tray: external monitors ov
 Limit: 10,000 characters (this is about 2,200).
 
 ```text
-Changing the brightness of an external monitor usually means reaching behind it and fiddling with tiny buttons and on-screen menus, once per monitor. Brightness Control puts a slider for every screen in the Windows system tray instead.
+Changing the brightness of an external monitor usually means reaching behind it and fiddling with tiny buttons and on-screen menus, once per monitor. Display Control puts a slider for every screen in the Windows system tray instead.
 
 Click the tray icon and you get one slider per screen plus an "All screens" slider. External monitors are controlled over DDC/CI, the standard most monitors use for settings over the display cable. Laptop screens are controlled through Windows. Night, Evening, Day and Max presets set everything in one click.
 
 Monitor settings without the menus
-If a monitor reports that it supports them, Brightness Control also shows its contrast, colour preset (such as sRGB or 6500K) and input source. Settings a monitor doesn't support are simply not shown.
+If a monitor reports that it supports them, Display Control also shows its contrast, colour preset (such as sRGB or 6500K) and input source. Settings a monitor doesn't support are simply not shown.
 
 Screens with matching colours
 No two screens show white the same way. Match colours puts a white square on every screen: pick the one that looks right, then nudge the others warmer or cooler, greener or more magenta, until they match. Monitors that accept colour commands are adjusted in their own settings; laptop screens and other monitors are adjusted through Windows. Reset colours puts everything back.
@@ -65,7 +67,7 @@ Fits in with Windows
 - Optional start with Windows
 
 Private by design
-Brightness Control collects no data, has no ads and no account, and works fully offline. Settings stay on your PC.
+Display Control collects no data, has no ads and no account, and works fully offline. Settings stay on your PC.
 
 If a monitor doesn't respond
 - Turn on DDC/CI in the monitor's own on-screen menu (it is sometimes off by default).
@@ -158,7 +160,7 @@ Expected result: 3+ (PEGI 3 / ESRB Everyone, and equivalents).
 ## Privacy policy URL
 
 ```text
-https://github.com/riyajkm/brightness-control/blob/main/docs/privacy.md
+https://github.com/riyajkm/display-control/blob/main/docs/privacy.md
 ```
 
 Website and support contact can both point to the repository and its Issues page.
@@ -202,5 +204,5 @@ Requirements: PNG, at least 1366 x 768 (up to 3840 x 2160), 50 MB max each, up t
 **Notes for certification** (Submission options > Notes for certification), suggested text:
 
 ```text
-Brightness Control runs in the system tray. Launching it from Start (including again while it is running) opens the brightness panel; Windows may place a new app's tray icon in the hidden area behind the ^ arrow next to the clock. External monitor controls appear only on monitors that support DDC/CI (most desktop monitors, often needs DDC/CI enabled in the monitor menu). On a VM or a PC without such a monitor, the panel shows only the screens Windows can control, which is expected. The app makes no network connections and collects no data.
+Display Control runs in the system tray. Launching it from Start (including again while it is running) opens the brightness panel; Windows may place a new app's tray icon in the hidden area behind the ^ arrow next to the clock. External monitor controls appear only on monitors that support DDC/CI (most desktop monitors, often needs DDC/CI enabled in the monitor menu). On a VM or a PC without such a monitor, the panel shows only the screens Windows can control, which is expected. The app makes no network connections and collects no data.
 ```

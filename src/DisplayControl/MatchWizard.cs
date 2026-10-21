@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // "Match brightness" wizard. The reference screen (the laptop if there is one) is set to a dim and then a
     // bright level; the user adjusts every other screen until a grey square on each looks equally bright.

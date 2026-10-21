@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     static class Native
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // The flyout opened from the tray icon. All sizes go through S() so it scales with the screen's DPI.
     class Panel : Form

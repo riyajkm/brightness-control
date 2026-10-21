@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Windows.Forms;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Flat 0-100 slider drawn by hand so it looks at home on Windows 11. Exposed to screen readers as a slider.
     class FlatSlider : Control

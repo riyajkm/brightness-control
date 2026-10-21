@@ -1,7 +1,7 @@
 using System;
 using System.Management;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Watches the laptop screen's brightness (brightness keys, Windows adaptive brightness, battery saver)
     // so external monitors can follow it.

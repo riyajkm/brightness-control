@@ -1,12 +1,12 @@
-# Brightness Control privacy policy
+# Display Control privacy policy
 
 Effective date: 21 October 2026
 
-Brightness Control is a Windows tray app that changes the brightness of your screens. This policy covers the app as installed from the Microsoft Store and the standalone download from this repository.
+Display Control is a Windows tray app that changes the brightness of your screens. This policy covers the app as installed from the Microsoft Store and the standalone download from this repository.
 
 ## The short version
 
-Brightness Control does not collect, send or sell any information about you. It has no telemetry, no analytics, no ads and no accounts, and it never connects to the internet.
+Display Control does not collect, send or sell any information about you. It has no telemetry, no analytics, no ads and no accounts, and it never connects to the internet.
 
 ## What the app does not do
 
@@ -20,7 +20,7 @@ The only web link in the app is in **About**. If you choose to open the project 
 
 ## What the app stores on your PC
 
-The app keeps two files in its own data folder. When installed from the Microsoft Store, this is the package's `LocalState` folder. The standalone version uses `%LOCALAPPDATA%\BrightnessControl`.
+The app keeps two files in its own data folder. When installed from the Microsoft Store, this is the package's `LocalState` folder. The standalone version uses `%LOCALAPPDATA%\DisplayControl`.
 
 - **settings.json** holds your preferences (for example, whether brightness matching or "Follow laptop brightness" is on), plus each monitor's capabilities string, brightness-matching curve and colour-matching values (including the monitor's original colour preset, so it can be restored). Monitors are identified by their Windows display device IDs.
 - **detect.log** records what happened while the app looked for monitors: monitor model names, display device IDs and error codes. It exists only to help troubleshoot a monitor that isn't detected. The file is capped at 256 KB and is cleared when it grows past that.
@@ -42,7 +42,7 @@ If you turn on **Start with Windows**, the app registers itself to start when yo
 
 ## Removing your data
 
-Uninstalling the Microsoft Store version removes the app together with its `LocalState` folder, including settings.json and detect.log. For the standalone version, delete the `%LOCALAPPDATA%\BrightnessControl` folder after removing the app.
+Uninstalling the Microsoft Store version removes the app together with its `LocalState` folder, including settings.json and detect.log. For the standalone version, delete the `%LOCALAPPDATA%\DisplayControl` folder after removing the app.
 
 ## Children
 
@@ -54,4 +54,4 @@ If the app's handling of data ever changes, this page will be updated and the ef
 
 ## Contact
 
-Questions about privacy can be raised as an issue at https://github.com/riyajkm/brightness-control/issues.
+Questions about privacy can be raised as an issue at https://github.com/riyajkm/display-control/issues.

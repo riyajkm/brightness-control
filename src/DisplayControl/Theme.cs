@@ -1,7 +1,7 @@
 using System.Drawing;
 using Microsoft.Win32;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Colours follow the Windows app theme (Settings > Personalization > Colors).
     static class Theme

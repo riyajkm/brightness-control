@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // MCCS VCP codes the app uses.
     static class Vcp

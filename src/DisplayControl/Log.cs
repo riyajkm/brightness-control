@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Detection log, so a monitor that goes missing on someone else's machine can be explained.
     static class Log

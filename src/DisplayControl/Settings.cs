@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // Per-monitor settings, keyed by Screen2.Id.
     class MonitorSettings

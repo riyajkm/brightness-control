@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace BrightnessControl
+namespace DisplayControl
 {
     // "Match colours" wizard. A white (or grey) square appears on every screen; the user picks the screen whose
     // white looks right, then moves each other screen's Cooler-Warmer and Greener-Magenta sliders until its square

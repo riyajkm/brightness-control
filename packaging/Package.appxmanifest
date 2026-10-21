@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  MSIX manifest for Brightness Control. build-msix.ps1 fills in the $TOKENS$.
+  MSIX manifest for Display Control. build-msix.ps1 fills in the $TOKENS$.
   IDENTITY_NAME / PUBLISHER / PUBLISHER_DISPLAY_NAME must match Partner Center
   (Product management > Product identity) for Store uploads, and DISPLAY_NAME must be
   the name you reserved there.
@@ -34,7 +34,7 @@
   </Resources>
 
   <Applications>
-    <Application Id="BrightnessControl" Executable="BrightnessControl.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="DisplayControl" Executable="DisplayControl.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="$DISPLAY_NAME$"
         Description="Change brightness on every screen from the taskbar."
@@ -46,7 +46,7 @@
       <Extensions>
         <!-- TaskId must match App.StartupTaskId. Off until the user turns on "Start with Windows". -->
         <uap5:Extension Category="windows.startupTask">
-          <uap5:StartupTask TaskId="BrightnessControlStartup" Enabled="false" DisplayName="$DISPLAY_NAME$" />
+          <uap5:StartupTask TaskId="DisplayControlStartup" Enabled="false" DisplayName="$DISPLAY_NAME$" />
         </uap5:Extension>
       </Extensions>
     </Application>
