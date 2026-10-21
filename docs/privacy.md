@@ -22,14 +22,15 @@ The only web link in the app is in **About**. If you choose to open the project 
 
 The app keeps two files in its own data folder. When installed from the Microsoft Store, this is the package's `LocalState` folder. The standalone version uses `%LOCALAPPDATA%\BrightnessControl`.
 
-- **settings.json** holds your preferences (for example, whether brightness matching or "Follow laptop brightness" is on), plus each monitor's capabilities string and brightness-matching curve. Monitors are identified by their Windows display device IDs.
+- **settings.json** holds your preferences (for example, whether brightness matching or "Follow laptop brightness" is on), plus each monitor's capabilities string, brightness-matching curve and colour-matching values (including the monitor's original colour preset, so it can be restored). Monitors are identified by their Windows display device IDs.
 - **detect.log** records what happened while the app looked for monitors: monitor model names, display device IDs and error codes. It exists only to help troubleshoot a monitor that isn't detected. The file is capped at 256 KB and is cleared when it grows past that.
 
 Neither file is ever uploaded or sent anywhere by the app. You can open the log from the tray menu (**Open detection log**). If you report a problem, you can choose to paste or attach it to a GitHub issue; that is always your decision, and you can read or edit it first.
 
 ## How the app talks to your hardware
 
-- **External monitors:** the app sends brightness, contrast, colour preset and input source commands directly to the monitor over the display cable, using the DDC/CI standard.
+- **External monitors:** the app sends brightness, contrast, colour preset, input source and (for colour matching) red/green/blue level commands directly to the monitor over the display cable, using the DDC/CI standard.
+- **Colour matching on other screens:** for the laptop screen and monitors that ignore colour commands, the app adjusts that screen's colour output in Windows (its gamma ramp). This stays on your PC.
 - **Laptop screens:** the app reads and sets brightness through Windows Management Instrumentation (WMI), the same interface Windows itself uses.
 - **Follow laptop brightness:** when you turn this on, the app listens for Windows brightness-change events on your PC so your external monitors can follow the laptop screen. These events stay on your PC.
 

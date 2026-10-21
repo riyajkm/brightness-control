@@ -13,6 +13,18 @@ namespace BrightnessControl
 
         // Brightness-matching curve: pairs of [shared level, this monitor's %], from the match wizard.
         public List<int[]> Curve { get; set; }
+
+        // Colour matching (white balance), -50..50 each. 0/0 = untouched.
+        public int Warmth { get; set; }
+        public int Tint { get; set; }
+
+        // What the monitor had before colour matching first changed it, so Reset can put it back.
+        public int? OriginalPreset { get; set; }
+        public int[] OriginalGains { get; set; }
+        public int[] GainMax { get; set; }
+
+        // True once we've seen the monitor ignore RGB gain writes; it then gets software colour instead.
+        public bool GainsUnsupported { get; set; }
     }
 
     class Settings

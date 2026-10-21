@@ -14,6 +14,9 @@ namespace BrightnessControl
         public const byte Contrast = 0x12;
         public const byte ColorPreset = 0x14;
         public const byte Input = 0x60;
+        public const byte RedGain = 0x16;
+        public const byte GreenGain = 0x18;
+        public const byte BlueGain = 0x1A;
     }
 
     // One screen Windows reports. Screens that can't be read yet stay listed and are re-checked later.
@@ -26,6 +29,7 @@ namespace BrightnessControl
         public IntPtr Handle;          // physical monitor handle for DDC
         public string WmiInstance;     // instance name for WMI
         public Rectangle Bounds;       // where it sits on the desktop (empty if unknown)
+        public string Device;          // GDI device name, e.g. \\.\DISPLAY2 (for gamma ramps); null if unknown
         public volatile int Brightness;
         public volatile int Max = 100;
 

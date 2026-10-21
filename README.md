@@ -5,6 +5,7 @@ A Windows tray app for changing brightness on every screen without touching the 
 - **Every screen in one place.** External monitors are controlled over **DDC/CI**; the laptop screen through Windows (**WMI**).
 - **All screens slider** and **Night / Evening / Day / Max** presets.
 - **Monitor settings** per monitor: contrast, colour preset (sRGB, 6500 K, …) and input source. Only what each monitor reports supporting is shown.
+- **Colour matching.** Run **Match colours…**: a white square appears on every screen; pick the one that looks right and nudge the others (cooler/warmer, greener/magenta) until they match. Monitors that accept colour commands are adjusted in their own settings; the laptop screen, and monitors that ignore those commands, are adjusted through Windows. **Reset colours** puts everything back.
 - **Brightness matching.** Screens at the same % rarely look the same. Run **Calibrate matching…** once: match a grey square on each screen by eye, and from then on one slider looks equally bright everywhere.
 - **Follow laptop brightness** (optional). External monitors follow the laptop's brightness keys and Windows adaptive brightness.
 - **Doesn't lose monitors.** Screens that don't answer stay listed and are re-checked when you open the panel, after display changes and after sleep. A detection log explains what happened.
@@ -13,7 +14,7 @@ A Windows tray app for changing brightness on every screen without touching the 
 
 ## Use
 
-Click the sun icon in the taskbar to open the panel. Right-click it (or use **⋯** in the panel) for **Refresh screens**, **Match brightness across screens**, **Calibrate matching…**, **Follow laptop brightness**, **Start with Windows**, **Open detection log** and **Exit**.
+Click the sun icon in the taskbar to open the panel. Right-click it (or use **⋯** in the panel) for **Refresh screens**, **Match brightness across screens**, **Calibrate matching…**, **Follow laptop brightness**, **Match colours…**, **Reset colours**, **Start with Windows**, **Open detection log** and **Exit**.
 
 Sliders respond to dragging, the mouse wheel and the keyboard (arrows, Page Up/Down, Home/End). The arrow next to a monitor's name opens its settings. Esc closes the panel.
 
@@ -57,7 +58,7 @@ Tests (capabilities parser, matching curves): `dotnet run --file tests/unit.cs -
 
 ## Roadmap
 
-**1.0 (this release):** detection that doesn't drop monitors, monitor settings from capabilities, brightness matching with the calibration wizard, follow laptop brightness, theme/DPI/accessibility, MSIX packaging with a startup task.
+**1.0 (this release):** detection that doesn't drop monitors, monitor settings from capabilities, brightness matching with the calibration wizard, colour matching (white balance) across screens, follow laptop brightness, theme/DPI/accessibility, MSIX packaging with a startup task.
 
 **Later:**
 
@@ -76,6 +77,7 @@ src/BrightnessControl/        app source (.NET 10, Windows Forms), one class per
   Monitors.cs, Screen2.cs     detection and per-screen DDC/CI / WMI I/O
   Capabilities.cs             MCCS capabilities parser
   Matching.cs, MatchWizard.cs brightness matching
+  ColorBalance.cs, ColorWizard.cs colour matching (RGB gain or gamma ramp)
   LaptopWatcher.cs            follow laptop brightness
   Panel.cs, FlatSlider.cs     the flyout UI
   App.cs, Program.cs          tray icon, menu, startup

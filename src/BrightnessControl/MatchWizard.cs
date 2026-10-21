@@ -100,9 +100,8 @@ namespace BrightnessControl
             foreach (var s in all)
             {
                 if (s.Bounds.IsEmpty) continue;
-                var p = new PatchForm(s == reference ? s.Name + " (reference)" : s.Name);
-                int w = s.Bounds.Width * 2 / 5, h = s.Bounds.Height * 2 / 5;
-                p.Bounds = new Rectangle(s.Bounds.Left + (s.Bounds.Width - w) / 2, s.Bounds.Top + s.Bounds.Height / 6, w, h);
+                var p = new PatchForm(s == reference ? s.Name + " (reference)" : s.Name, Color.FromArgb(128, 128, 128));
+                p.PlaceOn(s.Bounds);
                 p.Show();
                 patches.Add(p);
             }
@@ -147,22 +146,6 @@ namespace BrightnessControl
             foreach (var p in patches) p.Close();
             foreach (var kv in original) kv.Key.Set(kv.Value);   // saved or cancelled: put everything back
             base.OnFormClosed(e);
-        }
-
-        // Plain mid-grey square with the screen's name; never takes focus.
-        class PatchForm : Form
-        {
-            public PatchForm(string name)
-            {
-                FormBorderStyle = FormBorderStyle.None;
-                ShowInTaskbar = false;
-                TopMost = true;
-                StartPosition = FormStartPosition.Manual;
-                BackColor = Color.FromArgb(128, 128, 128);
-                Controls.Add(new Label { Text = name, Dock = DockStyle.Bottom, Height = 40, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Color.White, BackColor = Color.FromArgb(40, 40, 40), Font = new Font("Segoe UI", 12f) });
-            }
-
-            protected override bool ShowWithoutActivation { get { return true; } }
         }
     }
 }

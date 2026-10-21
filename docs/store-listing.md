@@ -46,6 +46,9 @@ Click the tray icon and you get one slider per screen plus an "All screens" slid
 Monitor settings without the menus
 If a monitor reports that it supports them, Brightness Control also shows its contrast, colour preset (such as sRGB or 6500K) and input source. Settings a monitor doesn't support are simply not shown.
 
+Screens with matching colours
+No two screens show white the same way. Match colours puts a white square on every screen: pick the one that looks right, then nudge the others warmer or cooler, greener or more magenta, until they match. Monitors that accept colour commands are adjusted in their own settings; laptop screens and other monitors are adjusted through Windows. Reset colours puts everything back.
+
 Screens that look equally bright
 Two monitors at "50%" rarely look the same. Brightness matching fixes that: a short two-step wizard shows a grey square on each screen and you adjust until they look the same by eye. After that, one slider makes every screen look equally bright.
 
@@ -83,6 +86,7 @@ First release.
 - External monitors over DDC/CI, laptop screens through Windows
 - Contrast, colour preset and input source for monitors that support them
 - Brightness matching across screens with a two-step by-eye wizard
+- Colour matching (white balance) across screens, in the monitor where supported, otherwise through Windows
 - Optional "Follow laptop brightness"
 - Detection that retries unresponsive monitors and a detection log for troubleshooting
 ```
@@ -100,6 +104,7 @@ External monitors over DDC/CI, laptop screens through Windows
 Contrast, colour preset and input source for monitors that support them
 Brightness matching so one slider looks equally bright on every screen
 Two-step by-eye matching wizard using grey squares on each screen
+Colour matching: make whites look the same on every screen, with a one-click reset
 Optional: external monitors follow your laptop's brightness keys and adaptive brightness
 Unresponsive monitors stay listed and are re-checked after display changes and sleep
 Detection log for troubleshooting

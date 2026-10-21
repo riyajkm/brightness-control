@@ -57,5 +57,14 @@ var bad = Make(new[] { 80, 30 }, new[] { 30, 50 });  // user set bright lower th
 Check("monotonic fix", bad[0][0] == 30 && bad[1][1] > bad[0][1]);
 var flat = Make(new[] { 30, 50 }, new[] { 30, 50 });
 Check("duplicate level fixed", flat[1][0] > flat[0][0]);
+var CB = asm.GetType("BrightnessControl.ColorBalance");
+double[] Mult(int w, int t) { var a = new object[] { w, t, 0.0, 0.0, 0.0 }; CB.GetMethod("Multipliers").Invoke(null, a); return new[] { (double)a[2], (double)a[3], (double)a[4] }; }
+var n = Mult(0, 0); Check("colour neutral = 1/1/1", n[0] == 1 && n[1] == 1 && n[2] == 1);
+var warm = Mult(50, 0); Check("warmer cuts blue, keeps red", warm[0] == 1 && warm[2] < 0.8);
+var cool = Mult(-50, 0); Check("cooler cuts red, keeps blue", cool[2] == 1 && cool[0] < 0.8);
+var mag = Mult(0, 50); Check("magenta cuts green", mag[1] < 0.8 && mag[0] == 1 && mag[2] == 1);
+var grn = Mult(0, -50); Check("greener cuts red and blue", grn[1] == 1 && grn[0] < 1 && grn[2] < 1);
+bool inRange = true; for (int w = -50; w <= 50; w += 10) for (int t = -50; t <= 50; t += 10) foreach (var v in Mult(w, t)) if (v < 0.5 || v > 1) inRange = false;
+Check("all multipliers within 0.5..1 (never brighter, never crushed)", inRange);
 Console.WriteLine(fails == 0 ? "ALL PASSED" : fails + " FAILED"); return fails == 0 ? 0 : 1;
 

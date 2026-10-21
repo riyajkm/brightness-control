@@ -51,5 +51,9 @@ namespace BrightnessControl
         [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
         [DllImport("user32.dll")] public static extern IntPtr MonitorFromPoint(POINT pt, uint flags);
         [DllImport("shcore.dll")] public static extern int GetDpiForMonitor(IntPtr hMonitor, int type, out uint dpiX, out uint dpiY);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr CreateDC(string driver, string device, string output, IntPtr initData);
+        [DllImport("gdi32.dll")] public static extern bool DeleteDC(IntPtr dc);
+        [DllImport("gdi32.dll")] public static extern bool SetDeviceGammaRamp(IntPtr dc, ushort[] ramp);
     }
 }

@@ -21,10 +21,10 @@ namespace BrightnessControl
         readonly NotifyIcon tray;
         readonly Panel panel;
         readonly ContextMenuStrip menu;
-        readonly ToolStripMenuItem startup, match, calibrate, follow;
+        readonly ToolStripMenuItem startup, match, calibrate, follow, matchColours, resetColours;
         readonly System.Windows.Forms.Timer refreshDelay = new System.Windows.Forms.Timer();
         List<Screen2> screens = new List<Screen2>();
-        bool detecting, detectAgain, wizardOpen;
+        bool detecting, detectAgain, wizardOpen;   // wizardOpen covers both match wizards
 
         public App()
         {
@@ -37,9 +37,14 @@ namespace BrightnessControl
             match = new ToolStripMenuItem("Match brightness across screens", null, delegate { ToggleMatch(); });
             calibrate = new ToolStripMenuItem("Calibrate matching…", null, delegate { RunWizard(); });
             follow = new ToolStripMenuItem("Follow laptop brightness", null, delegate { ToggleFollow(); });
+            matchColours = new ToolStripMenuItem("Match colours…", null, delegate { RunColorWizard(); });
+            resetColours = new ToolStripMenuItem("Reset colours", null, delegate { ResetColours(); });
             menu.Items.Add(match);
             menu.Items.Add(calibrate);
             menu.Items.Add(follow);
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(matchColours);
+            menu.Items.Add(resetColours);
             menu.Items.Add(new ToolStripSeparator());
             startup = new ToolStripMenuItem("Start with Windows", null, async delegate { await ToggleStartup(); });
             menu.Items.Add(startup);
@@ -137,6 +142,7 @@ namespace BrightnessControl
                 {
                     screens = found;
                     foreach (var s in screens) s.LoadCapabilities();
+                    ColorBalance.ReapplySoftware(screens);   // gamma ramps don't survive display changes
                     panel.Build(screens);
                     tray.Text = "Brightness Control - " + screens.Count + " screen" + (screens.Count == 1 ? "" : "s");
                     detecting = false;
@@ -169,7 +175,11 @@ namespace BrightnessControl
         void ShowPanel(Point anchor)
         {
             // Re-read every screen: picks up monitors that weren't answering and brightness changed elsewhere.
-            if (!detecting) foreach (var s in screens) s.Refresh();
+            if (!detecting)
+            {
+                foreach (var s in screens) s.Refresh();
+                ColorBalance.ReapplySoftware(screens);   // in case other software (or Night Light) replaced it
+            }
             panel.ShowAt(anchor);
         }
 
@@ -187,6 +197,10 @@ namespace BrightnessControl
             calibrate.Enabled = MatchWizard.CanRun(screens) && !wizardOpen;
             follow.Checked = Settings.Current.FollowLaptop;
             follow.Enabled = hasLaptop && controllable > 1;
+            matchColours.Enabled = ColorWizard.CanRun(screens) && !wizardOpen;
+            bool anyColour = false;
+            foreach (var s in screens) { var m = Settings.Current.For(s.Id); if (m.Warmth != 0 || m.Tint != 0) anyColour = true; }
+            resetColours.Enabled = anyColour && !wizardOpen;
         }
 
         void ToggleMatch()
@@ -217,6 +231,21 @@ namespace BrightnessControl
 
         // Notepad first: the .log file association is sometimes broken (opening it silently does nothing).
         // Then the association, then File Explorer with the file selected.
+        void RunColorWizard()
+        {
+            if (wizardOpen || !ColorWizard.CanRun(screens)) return;
+            panel.Hide();
+            wizardOpen = true;
+            using (var w = new ColorWizard(screens)) w.ShowDialog();
+            wizardOpen = false;
+            if (detectAgain) { detectAgain = false; RefreshScreens(); }
+        }
+
+        void ResetColours()
+        {
+            foreach (var s in screens) ColorBalance.Reset(s);
+        }
+
         void OpenLog()
         {
             if (!File.Exists(Log.FilePath)) Log.Write("Log created");

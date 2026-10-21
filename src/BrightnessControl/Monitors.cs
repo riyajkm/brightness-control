@@ -81,7 +81,7 @@ namespace BrightnessControl
                     foreach (var p in internals)
                         if (string.Equals(p.Key, wmiInstance, StringComparison.OrdinalIgnoreCase))
                         {
-                            result.Add(new Screen2 { Id = prefix, Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value, Bounds = bounds });
+                            result.Add(new Screen2 { Id = prefix, Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value, Bounds = bounds, Device = mi.szDevice });
                             usedWmi.Add(p.Key);
                             handledByWmi = true;
                             Log.Write("  -> laptop screen via WMI, " + p.Value + "%");
@@ -103,7 +103,7 @@ namespace BrightnessControl
                 }
                 if (phys == null)
                 {
-                    result.Add(new Screen2 { Id = id, Name = friendly, Kind = "None", Responding = false, Brightness = 100, Bounds = bounds });
+                    result.Add(new Screen2 { Id = id, Name = friendly, Kind = "None", Responding = false, Brightness = 100, Bounds = bounds, Device = mi.szDevice });
                     continue;
                 }
 
@@ -114,13 +114,13 @@ namespace BrightnessControl
                     if (ReadDdc(friendly, pm.hPhysicalMonitor, 3, out cur, out max))
                     {
                         int pct = (int)Math.Round(cur * 100.0 / max);
-                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = pct, Max = (int)max, Bounds = bounds });
+                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = pct, Max = (int)max, Bounds = bounds, Device = mi.szDevice });
                         Log.Write("  -> DDC/CI, " + cur + "/" + max);
                     }
                     else
                     {
                         // Keep the handle: the monitor may answer once it has woken up, and writes may work even when reads don't.
-                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = 50, Responding = false, Bounds = bounds });
+                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = 50, Responding = false, Bounds = bounds, Device = mi.szDevice });
                         Log.Write("  -> DDC/CI not answering; kept, will retry later");
                     }
                 }
