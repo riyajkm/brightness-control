@@ -81,3 +81,7 @@ tools/make-assets.cs          icon generator
 docs/                         privacy policy, Store listing, research
 build.ps1 / build-msix.ps1    build scripts
 ```
+
+## License
+
+[MIT](LICENSE)
