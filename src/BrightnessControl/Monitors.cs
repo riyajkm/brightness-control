@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -30,7 +31,7 @@ namespace BrightnessControl
         {
             for (int i = 1; i <= attempts; i++)
             {
-                if (Native.GetVCPFeatureAndVCPFeatureReply(handle, 0x10, IntPtr.Zero, out cur, out max) && max > 0) return true;
+                if (Native.GetVCPFeatureAndVCPFeatureReply(handle, Vcp.Brightness, IntPtr.Zero, out cur, out max) && max > 0) return true;
                 Log.Write(name + ": brightness read " + i + "/" + attempts + " failed, error 0x" + Marshal.GetLastWin32Error().ToString("X"));
                 if (i < attempts) Thread.Sleep(60 * i);
             }
@@ -71,6 +72,8 @@ namespace BrightnessControl
                 if (string.IsNullOrEmpty(friendly)) friendly = ModelCode(prefix);
                 if (string.IsNullOrEmpty(friendly)) friendly = "Display";
                 Log.Write(mi.szDevice + " '" + friendly + "' " + (prefix ?? "(no device ID)"));
+                var bounds = Rectangle.FromLTRB(mi.rcLeft, mi.rcTop, mi.rcRight, mi.rcBottom);
+                string id = prefix ?? mi.szDevice;
 
                 // Laptop panel: controlled through WMI.
                 bool handledByWmi = false;
@@ -78,7 +81,7 @@ namespace BrightnessControl
                     foreach (var p in internals)
                         if (string.Equals(p.Key, wmiInstance, StringComparison.OrdinalIgnoreCase))
                         {
-                            result.Add(new Screen2 { Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value });
+                            result.Add(new Screen2 { Id = prefix, Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value, Bounds = bounds });
                             usedWmi.Add(p.Key);
                             handledByWmi = true;
                             Log.Write("  -> laptop screen via WMI, " + p.Value + "%");
@@ -100,23 +103,24 @@ namespace BrightnessControl
                 }
                 if (phys == null)
                 {
-                    result.Add(new Screen2 { Name = friendly, Kind = "None", Responding = false, Brightness = 100 });
+                    result.Add(new Screen2 { Id = id, Name = friendly, Kind = "None", Responding = false, Brightness = 100, Bounds = bounds });
                     continue;
                 }
 
-                foreach (var pm in phys)
+                for (int n = 0; n < phys.Length; n++)
                 {
+                    var pm = phys[n];
                     uint cur, max;
                     if (ReadDdc(friendly, pm.hPhysicalMonitor, 3, out cur, out max))
                     {
                         int pct = (int)Math.Round(cur * 100.0 / max);
-                        result.Add(new Screen2 { Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = pct, Max = (int)max });
+                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = pct, Max = (int)max, Bounds = bounds });
                         Log.Write("  -> DDC/CI, " + cur + "/" + max);
                     }
                     else
                     {
                         // Keep the handle: the monitor may answer once it has woken up, and writes may work even when reads don't.
-                        result.Add(new Screen2 { Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = 50, Responding = false });
+                        result.Add(new Screen2 { Id = id + (phys.Length > 1 ? "#" + n : ""), Name = friendly, Kind = "DDC", Handle = pm.hPhysicalMonitor, Brightness = 50, Responding = false, Bounds = bounds });
                         Log.Write("  -> DDC/CI not answering; kept, will retry later");
                     }
                 }
@@ -126,7 +130,7 @@ namespace BrightnessControl
             foreach (var p in internals)
                 if (!usedWmi.Contains(p.Key))
                 {
-                    result.Add(new Screen2 { Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value });
+                    result.Add(new Screen2 { Id = p.Key, Name = "Laptop screen", Kind = "WMI", WmiInstance = p.Key, Brightness = p.Value });
                     Log.Write("Unmatched WMI panel " + p.Key + " added as laptop screen");
                 }
 

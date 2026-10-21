@@ -15,10 +15,14 @@ namespace BrightnessControl
         {
             bool created;
             using (var mutex = new Mutex(true, "BrightnessControl.SingleInstance", out created))
+            using (var showRequest = new EventWaitHandle(false, EventResetMode.AutoReset, "BrightnessControl.Show"))
             {
-                if (!created) return;
+                // Already running (e.g. launched again from Start): ask that copy to open its panel.
+                if (!created) { showRequest.Set(); return; }
                 ApplicationConfiguration.Initialize();
-                Application.Run(new App());
+                var app = new App();
+                ThreadPool.RegisterWaitForSingleObject(showRequest, delegate { app.ShowFromOtherInstance(); }, null, -1, false);
+                Application.Run(app);
             }
         }
     }
