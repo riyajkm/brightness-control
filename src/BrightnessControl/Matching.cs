@@ -36,7 +36,7 @@ namespace BrightnessControl
             list.Sort((a, b) => a[0].CompareTo(b[0]));
             for (int i = 1; i < list.Count; i++)
             {
-                if (list[i][0] == list[i - 1][0]) list[i][0] = Math.Min(100, list[i - 1][0] + 1);
+                if (list[i][0] <= list[i - 1][0]) list[i][0] = Math.Min(100, list[i - 1][0] + 1);
                 if (list[i][1] <= list[i - 1][1]) list[i][1] = Math.Min(100, list[i - 1][1] + 1);
             }
             return list;

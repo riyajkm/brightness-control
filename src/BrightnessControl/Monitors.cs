@@ -68,7 +68,9 @@ namespace BrightnessControl
                 string friendly = null, wmiInstance = null;
                 if (prefix != null)
                     foreach (var kv in names)
-                        if (kv.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { friendly = kv.Value; wmiInstance = kv.Key; break; }
+                        // "...UID4165_0" matches "...UID4165", but "...UID41650_0" must not.
+                        if (kv.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && (kv.Key.Length == prefix.Length || kv.Key[prefix.Length] == '_'))
+                        { friendly = kv.Value; wmiInstance = kv.Key; break; }
                 if (string.IsNullOrEmpty(friendly)) friendly = ModelCode(prefix);
                 if (string.IsNullOrEmpty(friendly)) friendly = "Display";
                 Log.Write(mi.szDevice + " '" + friendly + "' " + (prefix ?? "(no device ID)"));

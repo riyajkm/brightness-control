@@ -60,21 +60,24 @@ namespace BrightnessControl
             return caps;
         }
 
-        // Contents of "name(...)", matched case-insensitively.
+        // Contents of "name(...)", matched case-insensitively. Prefers a standalone tag; if there's none, accepts
+        // one glued to the previous tag (some firmware writes "MStarvcp(" the way the MSI writes "MStarcmds(").
         static string Section(string s, string name)
         {
+            int glued = -1;
             int at = s.IndexOf(name + "(", StringComparison.OrdinalIgnoreCase);
             while (at >= 0)
             {
-                // Skip matches that are the tail of a longer tag, like "vcpname(" when looking for "name(".
-                if (at == 0 || !char.IsLetter(s[at - 1]))
-                {
-                    int open = at + name.Length;
-                    return s.Substring(open + 1, Close(s, open) - open - 1);
-                }
+                if (at == 0 || !char.IsLetter(s[at - 1])) return Contents(s, at + name.Length);
+                if (glued < 0) glued = at;
                 at = s.IndexOf(name + "(", at + 1, StringComparison.OrdinalIgnoreCase);
             }
-            return null;
+            return glued >= 0 ? Contents(s, glued + name.Length) : null;
+        }
+
+        static string Contents(string s, int open)
+        {
+            return s.Substring(open + 1, Close(s, open) - open - 1);
         }
 
         static int Close(string s, int open)

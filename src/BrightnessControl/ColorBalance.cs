@@ -29,13 +29,16 @@ namespace BrightnessControl
                 && caps.Has(Vcp.RedGain) && caps.Has(Vcp.GreenGain) && caps.Has(Vcp.BlueGain);
         }
 
-        // Software (gamma) colour: screens with no RGB gain. For a DDC monitor whose capabilities haven't
-        // loaded yet the answer is unknown, so don't touch it - it may turn out to take hardware gain.
+        // Software (gamma) colour: screens with no usable RGB gain. A DDC monitor only qualifies once we know
+        // it has none - by its capabilities, or because it ignored gain writes. One whose capabilities haven't
+        // loaded, or that lists RGB gain but isn't answering right now, is left alone: it may take hardware gain
+        // in a moment, and adjusting it both ways would double the correction.
         public static bool UsesSoftware(Screen2 s)
         {
             if (string.IsNullOrEmpty(s.Device) || !s.Controllable) return false;
-            if (s.Kind != "DDC" || Settings.Current.For(s.Id).GainsUnsupported || !s.Responding) return true;
-            return s.Caps != null && !UsesGains(s);
+            if (s.Kind != "DDC" || Settings.Current.For(s.Id).GainsUnsupported) return true;
+            var caps = s.Caps;
+            return caps != null && !(caps.Has(Vcp.RedGain) && caps.Has(Vcp.GreenGain) && caps.Has(Vcp.BlueGain));
         }
 
         public static bool CanAdjust(Screen2 s)
@@ -83,7 +86,7 @@ namespace BrightnessControl
                         if (!s.ReadVcp(codes[i], out cur, out max) || Math.Abs((int)cur - target[i]) > 2)
                         {
                             MarkUnsupported(s, m, "ignored an RGB gain write (asked " + target[i] + ", reads " + cur + ")");
-                            RestorePreset(s, m);
+                            RestoreHardware(s, m);   // it may have taken some of the writes
                             return;
                         }
                     Log.Write(s.Name + ": colour matching uses the monitor's RGB gain");
@@ -102,12 +105,16 @@ namespace BrightnessControl
             Log.Write(s.Name + ": " + why + "; colour matching will use Windows colour output instead");
         }
 
+        // Built on the monitor's own original gains, so a neutral balance writes back exactly what it had.
         static int[] Targets(MonitorSettings m, int warmth, int tint)
         {
             double r, g, b;
             Multipliers(warmth, tint, out r, out g, out b);
             var max = m.GainMax ?? new[] { 100, 100, 100 };
-            return new[] { (int)Math.Round(max[0] * r), (int)Math.Round(max[1] * g), (int)Math.Round(max[2] * b) };
+            var basis = new int[3];
+            for (int i = 0; i < 3; i++)
+                basis[i] = m.OriginalGains != null && m.OriginalGains[i] > 0 ? m.OriginalGains[i] : max[i];
+            return new[] { (int)Math.Round(basis[0] * r), (int)Math.Round(basis[1] * g), (int)Math.Round(basis[2] * b) };
         }
 
         // Live change from the wizard (UI thread). Hardware writes are coalesced by the screen's pump.
@@ -129,29 +136,36 @@ namespace BrightnessControl
             }
         }
 
-        // Back to how the screen was before colour matching.
-        public static void Reset(Screen2 s)
+        // Back to how the screen was before colour matching. persist = false only undoes it on screen (the
+        // wizard's "Reset all", which Cancel can still take back); the saved values change on Save.
+        public static void Reset(Screen2 s, bool persist = true)
         {
             var m = Settings.Current.For(s.Id);
-            m.Warmth = m.Tint = 0;
+            if (persist) { m.Warmth = m.Tint = 0; Settings.Current.Save(); }
             if (UsesSoftware(s)) SetGamma(s.Device, 1, 1, 1);
-            if (s.Kind == "DDC" && m.OriginalPreset != null)
+            if (s.Kind == "DDC")
+                // Decided on the pump, after any Prepare still queued there has recorded the originals.
                 s.Run(delegate
                 {
-                    // Gains live in the User preset's memory, and writing them switches many monitors (the
-                    // ViewSonic VA2759 does) to User. So: put the original gains back first, then the preset, last.
-                    if (m.OriginalGains != null && !m.GainsUnsupported)
-                    {
-                        Native.SetVCPFeature(s.Handle, Vcp.RedGain, (uint)m.OriginalGains[0]);
-                        Native.SetVCPFeature(s.Handle, Vcp.GreenGain, (uint)m.OriginalGains[1]);
-                        Native.SetVCPFeature(s.Handle, Vcp.BlueGain, (uint)m.OriginalGains[2]);
-                        Thread.Sleep(500);
-                    }
-                    RestorePreset(s, m);
+                    if (m.OriginalPreset == null && m.OriginalGains == null) return;
+                    RestoreHardware(s, m);
                     // Originals are kept: they're the monitor's true starting point for any later change.
                     Log.Write(s.Name + ": colours reset");
                 });
-            Settings.Current.Save();
+        }
+
+        // Gains live in the User preset's memory, and writing them switches many monitors (the ViewSonic VA2759
+        // does) to User. So: put the original gains back first, then the preset, last.
+        static void RestoreHardware(Screen2 s, MonitorSettings m)
+        {
+            if (m.OriginalGains != null)
+            {
+                Native.SetVCPFeature(s.Handle, Vcp.RedGain, (uint)m.OriginalGains[0]);
+                Native.SetVCPFeature(s.Handle, Vcp.GreenGain, (uint)m.OriginalGains[1]);
+                Native.SetVCPFeature(s.Handle, Vcp.BlueGain, (uint)m.OriginalGains[2]);
+                Thread.Sleep(500);
+            }
+            RestorePreset(s, m);
         }
 
         // Monitors need about a second after a preset change before they listen again; retry until it reads back.
@@ -181,6 +195,17 @@ namespace BrightnessControl
                     Multipliers(m.Warmth, m.Tint, out r, out g, out b);
                     SetGamma(s.Device, r, g, b);
                 }
+            }
+        }
+
+        // On exit: software colour only stays right while the app can re-apply it, so take it off. It comes back
+        // when the app starts again. Hardware gains stay in the monitor.
+        public static void RemoveSoftware(IEnumerable<Screen2> screens)
+        {
+            foreach (var s in screens)
+            {
+                var m = Settings.Current.For(s.Id);
+                if ((m.Warmth != 0 || m.Tint != 0) && UsesSoftware(s)) SetGamma(s.Device, 1, 1, 1);
             }
         }
 

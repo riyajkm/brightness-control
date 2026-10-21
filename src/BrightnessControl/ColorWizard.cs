@@ -191,11 +191,12 @@ namespace BrightnessControl
             Location = new Point(area.Left + (area.Width - Width) / 2, area.Bottom - Height - 24);
         }
 
+        // On screen only; Save makes it permanent and Cancel can still undo it.
         void ResetAll()
         {
             foreach (var s in screens)
             {
-                ColorBalance.Reset(s);
+                ColorBalance.Reset(s, persist: false);
                 current[s] = new[] { 0, 0 };
             }
             BuildRows();

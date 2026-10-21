@@ -242,8 +242,6 @@ namespace BrightnessControl
             if (detectAgain) { detectAgain = false; RefreshScreens(); }
         }
 
-        // Notepad first: the .log file association is sometimes broken (opening it silently does nothing).
-        // Then the association, then File Explorer with the file selected.
         void RunColorWizard()
         {
             if (wizardOpen || !ColorWizard.CanRun(screens)) return;
@@ -251,7 +249,8 @@ namespace BrightnessControl
             wizardOpen = true;
             using (var w = new ColorWizard(screens)) w.ShowDialog();
             wizardOpen = false;
-            if (detectAgain) { detectAgain = false; RefreshScreens(); }
+            // Re-detecting releases the monitors, which drops queued work - give colour restores time to finish.
+            if (detectAgain) { detectAgain = false; ScheduleRefresh(8000); }
         }
 
         void ResetColours()
@@ -259,6 +258,8 @@ namespace BrightnessControl
             foreach (var s in screens) ColorBalance.Reset(s);
         }
 
+        // Notepad first: the .log file association is sometimes broken (opening it silently does nothing).
+        // Then the association, then File Explorer with the file selected.
         void OpenLog()
         {
             if (!File.Exists(Log.FilePath)) Log.Write("Log created");
@@ -375,6 +376,7 @@ namespace BrightnessControl
             SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
             LaptopWatcher.Changed -= OnLaptopChanged;
             LaptopWatcher.Stop();
+            ColorBalance.RemoveSoftware(screens);
             tray.Visible = false;
             tray.Dispose();
             Monitors.Release(screens);
