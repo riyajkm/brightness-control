@@ -52,7 +52,7 @@ Working toward a Microsoft Store release:
 
 ```
 BrightnessControl.slnx                       solution (open in Visual Studio / VS Code / Rider)
-src/BrightnessControl/BrightnessControl.cs    app source (.NET 10, Windows Forms)
+src/BrightnessControl/*.cs                   app source (.NET 10, Windows Forms), one class per file
 src/BrightnessControl/BrightnessControl.csproj
 build.ps1                                     build script (dotnet publish -> bin/)
 bin/                                          compiled app (not committed)
