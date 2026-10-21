@@ -66,5 +66,13 @@ var mag = Mult(0, 50); Check("magenta cuts green", mag[1] < 0.8 && mag[0] == 1 &
 var grn = Mult(0, -50); Check("greener cuts red and blue", grn[1] == 1 && grn[0] < 1 && grn[2] < 1);
 bool inRange = true; for (int w = -50; w <= 50; w += 10) for (int t = -50; t <= 50; t += 10) foreach (var v in Mult(w, t)) if (v < 0.5 || v > 1) inRange = false;
 Check("all multipliers within 0.5..1 (never brighter, never crushed)", inRange);
+var ST = asm.GetType("BrightnessControl.Screen2");
+var screensList = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(ST));
+object Scr(string name, int left) { var o = Activator.CreateInstance(ST); ST.GetField("Name").SetValue(o, name); ST.GetField("Bounds").SetValue(o, new System.Drawing.Rectangle(left, 0, 100, 100)); screensList.Add(o); return o; }
+var right = Scr("DELL U2720Q", 2000); var lap = Scr("Laptop screen", -1920); var left = Scr("DELL U2720Q", 0);
+asm.GetType("BrightnessControl.Monitors").GetMethod("NameDuplicates", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { screensList });
+string NameOf(object o) => (string)ST.GetField("Name").GetValue(o);
+Check("identical monitors numbered left to right", NameOf(left) == "DELL U2720Q (1)" && NameOf(right) == "DELL U2720Q (2)");
+Check("unique names unchanged", NameOf(lap) == "Laptop screen");
 Console.WriteLine(fails == 0 ? "ALL PASSED" : fails + " FAILED"); return fails == 0 ? 0 : 1;
 

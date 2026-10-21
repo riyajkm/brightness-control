@@ -134,8 +134,27 @@ namespace BrightnessControl
                     Log.Write("Unmatched WMI panel " + p.Key + " added as laptop screen");
                 }
 
+            NameDuplicates(result);
             Log.Write("Found " + result.Count + " screen(s)");
             return result;
+        }
+
+        // Two monitors of the same model get the same name; number them left to right so sliders can be told apart.
+        static void NameDuplicates(List<Screen2> screens)
+        {
+            var groups = new Dictionary<string, List<Screen2>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var s in screens)
+            {
+                List<Screen2> g;
+                if (!groups.TryGetValue(s.Name, out g)) groups[s.Name] = g = new List<Screen2>();
+                g.Add(s);
+            }
+            foreach (var g in groups.Values)
+            {
+                if (g.Count < 2) continue;
+                g.Sort((a, b) => a.Bounds.Left != b.Bounds.Left ? a.Bounds.Left.CompareTo(b.Bounds.Left) : a.Bounds.Top.CompareTo(b.Bounds.Top));
+                for (int i = 0; i < g.Count; i++) g[i].Name += " (" + (i + 1) + ")";
+            }
         }
 
         public static void Release(List<Screen2> screens)

@@ -75,6 +75,19 @@ namespace BrightnessControl
             RefreshScreens();
         }
 
+        // An unexpected error was caught and logged. Say so once per run; the app keeps working.
+        bool errorShown;
+        public void NotifyError()
+        {
+            if (errorShown || !panel.IsHandleCreated) return;
+            errorShown = true;
+            panel.BeginInvoke((MethodInvoker)delegate
+            {
+                tray.ShowBalloonTip(6000, "Brightness Control hit a problem",
+                    "It's still running. Details are in the detection log (right-click the tray icon > Open detection log).", ToolTipIcon.Warning);
+            });
+        }
+
         // Called (on any thread) when someone starts the app while it's already running.
         public void ShowFromOtherInstance()
         {
