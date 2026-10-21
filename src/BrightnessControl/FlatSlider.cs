@@ -46,7 +46,11 @@ namespace BrightnessControl
 
         public bool Dragging { get { return dragging; } }
 
-        float Scale1 { get { return DeviceDpi / 96f; } }
+        // Set by the owner when it lays out for a specific DPI; 0 means use the control's own DeviceDpi.
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int Dpi { get; set; }
+
+        float Scale1 { get { return (Dpi > 0 ? Dpi : DeviceDpi) / 96f; } }
         int Pad { get { return (int)(10 * Scale1); } }
 
         protected override void OnEnabledChanged(EventArgs e) { base.OnEnabledChanged(e); Invalidate(); }

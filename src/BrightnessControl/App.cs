@@ -152,7 +152,9 @@ namespace BrightnessControl
             Settings.Current.FirstRunDone = true;
             Settings.Current.Save();
             ShowPanel(TrayCorner());
-            tray.ShowBalloonTip(5000, "Brightness Control is running", "Click the sun icon in the taskbar any time to change brightness.", ToolTipIcon.Info);
+            tray.ShowBalloonTip(8000, "Brightness Control is running",
+                "Click the sun icon in the taskbar to change brightness. Don't see it? Click ^ next to the clock and drag the sun onto the taskbar.",
+                ToolTipIcon.Info);
         }
 
         void Toggle()
@@ -213,11 +215,25 @@ namespace BrightnessControl
             if (detectAgain) { detectAgain = false; RefreshScreens(); }
         }
 
+        // Notepad first: the .log file association is sometimes broken (opening it silently does nothing).
+        // Then the association, then File Explorer with the file selected.
         void OpenLog()
         {
             if (!File.Exists(Log.FilePath)) Log.Write("Log created");
-            try { Process.Start(new ProcessStartInfo(Log.FilePath) { UseShellExecute = true }); }
-            catch (Exception e) { MessageBox.Show("Couldn't open " + Log.FilePath + "\n\n" + e.Message, "Brightness Control"); }
+            string quoted = "\"" + Log.FilePath + "\"";
+            var attempts = new[]
+            {
+                new ProcessStartInfo("notepad.exe", quoted) { UseShellExecute = true },
+                new ProcessStartInfo(Log.FilePath) { UseShellExecute = true },
+                new ProcessStartInfo("explorer.exe", "/select," + quoted) { UseShellExecute = true }
+            };
+            Exception last = null;
+            foreach (var start in attempts)
+            {
+                try { Process.Start(start); return; }
+                catch (Exception e) { last = e; }
+            }
+            MessageBox.Show("Couldn't open " + Log.FilePath + "\n\n" + last.Message, "Brightness Control");
         }
 
         static void ShowAbout()

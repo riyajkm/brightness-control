@@ -19,6 +19,9 @@ namespace BrightnessControl
         Label allValue;
         bool linking;
         Point anchor;
+        int layoutDpi = 96;   // DPI the controls were built for (DeviceDpi goes stale while the panel is hidden)
+        bool rebuilding;      // a rebuild can trigger window moves and DPI messages; never nest them
+        int pendingDpi;
 
         public DateTime LastHidden = DateTime.MinValue;
         public ContextMenuStrip MoreMenu;  // the tray menu, also opened from the panel's "more" button
@@ -71,23 +74,39 @@ namespace BrightnessControl
             using (var p = new Pen(Theme.Border)) e.Graphics.DrawRectangle(p, 0, 0, Width - 1, Height - 1);
         }
 
-        // Moving to a screen with different scaling: rebuild at the new size.
+        // Moving to a screen with different scaling: rebuild at the new size. Windows also resizes the form
+        // to its own guess first, so always put the size back.
         protected override void OnDpiChanged(DpiChangedEventArgs e)
         {
             base.OnDpiChanged(e);
-            Rebuild();
-            Position();
+            if (e.DeviceDpiNew != layoutDpi) Rebuild(e.DeviceDpiNew);
+            else if (!rebuilding) { Width = S(340); FitHeight(); }
+            if (!rebuilding) Position();
         }
 
-        int S(int px) { return (int)Math.Round(px * DeviceDpi / 96.0); }
+        // Scaling of the screen the panel is about to open on. Asked directly, because a hidden window
+        // isn't told when that screen's scaling changes.
+        static int DpiAt(Point p)
+        {
+            try
+            {
+                var monitor = Native.MonitorFromPoint(new Native.POINT { X = p.X, Y = p.Y }, 2 /* nearest */);
+                uint x, y;
+                if (Native.GetDpiForMonitor(monitor, 0, out x, out y) == 0 && x > 0) return (int)x;
+            }
+            catch { }
+            return 96;
+        }
+
+        int S(int px) { return (int)Math.Round(px * layoutDpi / 96.0); }
 
         Font F(float pt, bool bold = false)
         {
-            string key = pt + (bold ? "b" : "") + "@" + DeviceDpi;
+            string key = pt + (bold ? "b" : "") + "@" + layoutDpi;
             Font f;
             if (!fonts.TryGetValue(key, out f))
             {
-                f = new Font("Segoe UI", pt * DeviceDpi / 72f, bold ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel);
+                f = new Font("Segoe UI", pt * layoutDpi / 72f, bold ? FontStyle.Bold : FontStyle.Regular, GraphicsUnit.Pixel);
                 fonts[key] = f;
             }
             return f;
@@ -95,11 +114,11 @@ namespace BrightnessControl
 
         Font Icons(float pt)
         {
-            string key = "icons" + pt + "@" + DeviceDpi;
+            string key = "icons" + pt + "@" + layoutDpi;
             Font f;
             if (!fonts.TryGetValue(key, out f))
             {
-                f = new Font("Segoe MDL2 Assets", pt * DeviceDpi / 72f, FontStyle.Regular, GraphicsUnit.Pixel);
+                f = new Font("Segoe MDL2 Assets", pt * layoutDpi / 72f, FontStyle.Regular, GraphicsUnit.Pixel);
                 fonts[key] = f;
             }
             return f;
@@ -110,7 +129,7 @@ namespace BrightnessControl
             return new Label { Text = text, ForeColor = color, Font = F(size, bold), AutoSize = true, Margin = new Padding(S(2), 0, 0, S(2)) };
         }
 
-        Button MakeButton(string text, EventHandler onClick)
+        Button MakeButton(string text, int width, bool last, EventHandler onClick)
         {
             var b = new Button
             {
@@ -120,8 +139,8 @@ namespace BrightnessControl
                 ForeColor = Theme.Text,
                 Font = F(9.5f),
                 Height = S(30),
-                Width = S(69),
-                Margin = new Padding(0, 0, S(6), 0),
+                Width = width,
+                Margin = new Padding(0, 0, last ? 0 : S(6), 0),
                 Cursor = Cursors.Hand
             };
             b.FlatAppearance.BorderColor = Theme.Border;
@@ -180,7 +199,29 @@ namespace BrightnessControl
         }
 
         // Recreate every control: after detection, a DPI change or a theme change.
-        public void Rebuild()
+        public void Rebuild() { Rebuild(layoutDpi); }
+
+        void Rebuild(int dpi)
+        {
+            if (rebuilding) { pendingDpi = dpi; return; }
+            rebuilding = true;
+            try
+            {
+                do
+                {
+                    pendingDpi = 0;
+                    if (dpi != layoutDpi) Log.Write("Panel: layout for " + dpi + " DPI (was " + layoutDpi + ")");
+                    layoutDpi = dpi;
+                    RebuildControls();
+                    if (pendingDpi != 0) dpi = pendingDpi;
+                }
+                while (pendingDpi != 0);
+            }
+            finally { rebuilding = false; }
+            FitHeight();
+        }
+
+        void RebuildControls()
         {
             BackColor = Theme.Back;
             Width = S(340);
@@ -215,15 +256,15 @@ namespace BrightnessControl
             foreach (var s in screens) AddRow(s, inner);
 
             var presets = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, Margin = new Padding(0, S(6), 0, S(4)), BackColor = Theme.Back };
-            presets.Controls.Add(MakeButton("Night", delegate { SetAll(20); }));
-            presets.Controls.Add(MakeButton("Evening", delegate { SetAll(45); }));
-            presets.Controls.Add(MakeButton("Day", delegate { SetAll(75); }));
-            presets.Controls.Add(MakeButton("Max", delegate { SetAll(100); }));
+            int buttonWidth = (inner - S(6) * 3) / 4;   // four buttons share the full width
+            presets.Controls.Add(MakeButton("Night", buttonWidth, false, delegate { SetAll(20); }));
+            presets.Controls.Add(MakeButton("Evening", buttonWidth, false, delegate { SetAll(45); }));
+            presets.Controls.Add(MakeButton("Day", buttonWidth, false, delegate { SetAll(75); }));
+            presets.Controls.Add(MakeButton("Max", buttonWidth, true, delegate { SetAll(100); }));
             list.Controls.Add(presets);
 
             list.ResumeLayout();
-            FitHeight();
-            Invalidate();
+            Invalidate(true);   // repaint everything, so nothing from the old layout lingers
         }
 
         Control MakeHeader(int width)
@@ -241,6 +282,7 @@ namespace BrightnessControl
 
         void FitHeight()
         {
+            if (rebuilding) return;   // Rebuild fits once at the end
             list.PerformLayout();
             int h = list.PreferredSize.Height + 2;
             if (Height != h) { Height = h; if (Visible) Position(); }
@@ -257,7 +299,7 @@ namespace BrightnessControl
             var name = MakeLabel("All screens", Theme.Accent, 9.5f, true);
             name.Location = new Point(S(10), S(8));
             var value = MakeValueLabel(width);
-            var slider = new FlatSlider { Width = width - S(8), Height = S(28), Location = new Point(S(4), S(30)), AccessibleName = "All screens brightness" };
+            var slider = new FlatSlider { Dpi = layoutDpi, Width = width - S(8), Height = S(28), Location = new Point(S(4), S(30)), AccessibleName = "All screens brightness" };
             slider.SetSilently(AverageLevel());
             value.Text = slider.Value + "%";
             card.Controls.Add(name);
@@ -297,7 +339,7 @@ namespace BrightnessControl
             var more = MakeIconButton("", "Monitor settings for " + s.Name);
             more.Location = new Point(width - S(66) - more.Width, S(5));
             more.Visible = false;
-            var slider = new FlatSlider { Width = width - S(8), Height = S(28), Location = new Point(S(4), S(30)), AccessibleName = s.Name + " brightness" };
+            var slider = new FlatSlider { Dpi = layoutDpi, Width = width - S(8), Height = S(28), Location = new Point(S(4), S(30)), AccessibleName = s.Name + " brightness" };
             slider.SetSilently(s.Brightness);
             var warn = MakeLabel("", Theme.Warning, 8.5f, false);
             warn.AutoSize = false;
@@ -399,7 +441,7 @@ namespace BrightnessControl
             if (caps.Has(Vcp.Contrast))
             {
                 label("Contrast");
-                contrast = new FlatSlider { Width = w + S(6), Height = S(26), Location = new Point(x - S(6), y), Enabled = false, AccessibleName = s.Name + " contrast" };
+                contrast = new FlatSlider { Dpi = layoutDpi, Width = w + S(6), Height = S(26), Location = new Point(x - S(6), y), Enabled = false, AccessibleName = s.Name + " contrast" };
                 box.Controls.Add(contrast);
                 y += S(30);
             }
@@ -425,9 +467,10 @@ namespace BrightnessControl
                 box.Controls.Add(input);
                 y += S(30);
                 var note = MakeLabel("Switches this screen to another device.", Theme.Muted, 8f, false);
+                note.MaximumSize = new Size(w, 0);   // wrap instead of running off the card
                 note.Location = new Point(x, y);
                 box.Controls.Add(note);
-                y += S(20);
+                y += note.PreferredSize.Height + S(4);
             }
             box.Height = y + S(6);
 
@@ -577,9 +620,12 @@ namespace BrightnessControl
         public void ShowAt(Point cursor)
         {
             anchor = cursor;
+            int dpi = DpiAt(anchor);
+            if (dpi != layoutDpi) Rebuild(dpi);
             Position();
             Show();
             Activate();
+            if (DeviceDpi != layoutDpi) Log.Write("Panel: shown at " + Bounds + ", window DPI " + DeviceDpi + ", layout DPI " + layoutDpi);
         }
 
         // Next to the notification area, on whichever screen and edge the taskbar is.
