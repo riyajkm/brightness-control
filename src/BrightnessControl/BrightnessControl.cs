@@ -1,9 +1,10 @@
 // Brightness Control - tray app for adjusting monitor brightness on Windows.
 // External monitors use DDC/CI (dxva2.dll); the laptop panel uses WMI.
-// Built for .NET Framework 4.x (C# 5 syntax) so it compiles with the csc.exe that ships with Windows.
+// Built with .NET 10 (Windows Forms).
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Management;
@@ -287,6 +288,7 @@ namespace BrightnessControl
             TabStop = true;
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Value
         {
             get { return value; }
@@ -668,8 +670,7 @@ namespace BrightnessControl
             using (var mutex = new Mutex(true, "BrightnessControl.SingleInstance", out created))
             {
                 if (!created) return;
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
+                ApplicationConfiguration.Initialize();
                 Application.Run(new App());
             }
         }

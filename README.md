@@ -15,7 +15,7 @@ Sliders also respond to the mouse wheel and arrow keys.
 
 ## Build
 
-No Visual Studio needed — it uses the compiler built into Windows:
+Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (`winget install Microsoft.DotNet.SDK.10`). Then:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build.ps1
@@ -35,9 +35,9 @@ The monitor itself has to allow software control. In the monitor's on-screen men
 
 Working toward a Microsoft Store release:
 
-- [ ] Move to an SDK-style .NET 8 WinForms project
+- [x] Move to an SDK-style .NET 10 WinForms project
 - [ ] Detect every monitor reliably (DDC/CI, WMI, and fallbacks for docks, adapters and laptops)
-- [ ] Per-monitor DPI support, light/dark theme that follows Windows
+- [ ] Per-monitor DPI support (enabled in the project; UI layout still needs scaling work), light/dark theme that follows Windows
 - [ ] Open the panel on first launch and when launched again
 - [ ] Advanced options: global hotkeys, schedules, custom presets, contrast and input switching
 - [ ] Screen-reader support for the sliders
@@ -46,7 +46,9 @@ Working toward a Microsoft Store release:
 ## Layout
 
 ```
-src/BrightnessControl.cs   app source (C# 5, .NET Framework 4.x)
-build.ps1                  build script
-bin/                       compiled exe (not committed)
+BrightnessControl.slnx                       solution (open in Visual Studio / VS Code / Rider)
+src/BrightnessControl/BrightnessControl.cs    app source (.NET 10, Windows Forms)
+src/BrightnessControl/BrightnessControl.csproj
+build.ps1                                     build script (dotnet publish -> bin/)
+bin/                                          compiled app (not committed)
 ```
