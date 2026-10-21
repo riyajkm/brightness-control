@@ -13,8 +13,8 @@ namespace DisplayControl
 {
     class App : ApplicationContext
     {
-        const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        const string RunName = "DisplayControl";
+        const string RunKey = Lifecycle.RunKey;
+        const string RunName = Lifecycle.RunName;
         const string OldRunName = "BrightnessControl";   // the app's name before 1.0.1
         const string StartupTaskId = "DisplayControlStartup";   // must match Package.appxmanifest
         const string RepoUrl = "https://github.com/riyajkm/display-control";
@@ -87,6 +87,35 @@ namespace DisplayControl
             {
                 tray.ShowBalloonTip(6000, "Display Control hit a problem",
                     "It's still running. Details are in the detection log (right-click the tray icon > Open detection log).", ToolTipIcon.Warning);
+            });
+        }
+
+        // "DisplayControl.exe --exit" (the installer, before updating): close cleanly, which also removes
+        // software colour adjustments. Called on any thread.
+        public void ExitFromSignal()
+        {
+            if (panel.IsHandleCreated) panel.BeginInvoke((MethodInvoker)delegate { Log.Write("Closing on request"); ExitThread(); });
+        }
+
+        // "DisplayControl.exe --uninstall": put matched colours back on every monitor, remove the startup
+        // entry, then close once the monitors have finished restoring (at most ~20 s). Called on any thread.
+        public void UninstallFromSignal()
+        {
+            if (!panel.IsHandleCreated) return;
+            panel.BeginInvoke((MethodInvoker)delegate
+            {
+                panel.Hide();
+                Lifecycle.RemoveStartup();
+                Lifecycle.ResetAllColours(screens);
+                var started = DateTime.Now;
+                var wait = new System.Windows.Forms.Timer { Interval = 250 };
+                wait.Tick += delegate
+                {
+                    if (!Lifecycle.AllIdle(screens) && (DateTime.Now - started).TotalSeconds < 20) return;
+                    wait.Stop();
+                    ExitThread();
+                };
+                wait.Start();
             });
         }
 

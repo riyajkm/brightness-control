@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -11,7 +11,7 @@
     <RootNamespace>DisplayControl</RootNamespace>
     <AssemblyName>DisplayControl</AssemblyName>
     <Product>Display Control</Product>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <Company>Riyaj Kafardeen</Company>
     <Copyright>Copyright (c) 2026 Riyaj Kafardeen</Copyright>

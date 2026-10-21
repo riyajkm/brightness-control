@@ -55,6 +55,9 @@ namespace DisplayControl
         public bool Controllable { get { return Kind != "None"; } }
         public bool WritePending { get { lock (gate) return pending >= 0; } }
 
+        // Nothing queued or running for this screen (used to wait for colour restores before exiting).
+        public bool Idle { get { lock (gate) return !busy && pending < 0 && !probe && pendingVcp.Count == 0 && jobs.Count == 0; } }
+
         // Queue a brightness change; only the latest value is sent.
         public void Set(int value)
         {

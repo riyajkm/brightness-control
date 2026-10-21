@@ -1,4 +1,4 @@
-# Builds the Microsoft Store package: dist\DisplayControl_<version>.msixbundle (x64 + arm64).
+﻿# Builds the Microsoft Store package: dist\DisplayControl_<version>.msixbundle (x64 + arm64).
 # Needs the .NET 10 SDK and the Windows 10/11 SDK (for makeappx.exe and makepri.exe).
 #
 # Local test build (default identity):
@@ -10,7 +10,7 @@
 # The Store signs the package itself, so Store uploads don't need a certificate.
 
 param(
-    [string]$Version = "1.0.1.0",
+    [string]$Version = "1.0.2.0",
     [string]$IdentityName = "DisplayControl.Dev",
     [string]$Publisher = "CN=DisplayControlDev",
     [string]$PublisherDisplayName = "Riyaj Kafardeen",

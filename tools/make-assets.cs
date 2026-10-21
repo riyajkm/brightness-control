@@ -3,7 +3,7 @@
 #:property PublishAot=false
 // Draws the app icon (a monitor with an amber sun on its screen) at every size the MSIX package and the exe need.
 // Usage (from the repo root):  dotnet run --file tools/make-assets.cs
-// Writes packaging/Assets/*.png and src/DisplayControl/app.ico.
+// Writes packaging/Assets/*.png, src/DisplayControl/app.ico and installer/wizard-*.bmp.
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -38,6 +38,42 @@ static class MakeAssets
         }
 
         WriteIco(Path.Combine(root, "src", "DisplayControl", "app.ico"), new[] { 16, 20, 24, 32, 40, 48, 64, 256 });
+
+        // Installer wizard corner image (Inno Setup wants 24-bit BMP; the second size is for high-DPI screens).
+        string installer = Path.Combine(root, "installer");
+        Directory.CreateDirectory(installer);
+        foreach (int size in new[] { 55, 110 })
+            using (var icon = Draw(size, size, plate: false, fraction: 0.92f))
+            using (var bmp = new Bitmap(size, size, PixelFormat.Format24bppRgb))
+            {
+                using (var g = Graphics.FromImage(bmp)) { g.Clear(Color.White); g.DrawImage(icon, 0, 0, size, size); }
+                bmp.Save(Path.Combine(installer, "wizard-small-" + size + ".bmp"), ImageFormat.Bmp);
+            }
+        // Large image on the wizard's first and last pages: the icon on the navy brand colour.
+        foreach (int scale in new[] { 1, 2 })
+        {
+            int w = 164 * scale, h = 314 * scale;
+            using (var bmp = new Bitmap(w, h, PixelFormat.Format24bppRgb))
+            {
+                using (var g = Graphics.FromImage(bmp))
+                {
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    using (var bg = new LinearGradientBrush(new Rectangle(0, 0, w, h), Color.FromArgb(18, 32, 54), Color.FromArgb(44, 78, 120), 90f))
+                        g.FillRectangle(bg, 0, 0, w, h);
+                    using (var icon = Draw(120 * scale, 120 * scale, plate: false, fraction: 1f))
+                        g.DrawImage(icon, (w - icon.Width) / 2, h / 2 - icon.Height + 10 * scale);
+                    using (var font = new Font("Segoe UI Semibold", 15f * scale, GraphicsUnit.Pixel))
+                    using (var white = new SolidBrush(Color.White))
+                    using (var fmt = new StringFormat { Alignment = StringAlignment.Center })
+                        g.DrawString("Display Control", font, white, new RectangleF(0, h / 2 + 22 * scale, w, 30 * scale), fmt);
+                    using (var font = new Font("Segoe UI", 11f * scale, GraphicsUnit.Pixel))
+                    using (var soft = new SolidBrush(Color.FromArgb(190, 210, 235)))
+                    using (var fmt = new StringFormat { Alignment = StringAlignment.Center })
+                        g.DrawString("Brightness and colour\nfor every screen", font, soft, new RectangleF(8 * scale, h / 2 + 50 * scale, w - 16 * scale, 40 * scale), fmt);
+                }
+                bmp.Save(Path.Combine(installer, "wizard-large-" + w + ".bmp"), ImageFormat.Bmp);
+            }
+        }
         Console.WriteLine("Assets written to " + assets);
     }
 

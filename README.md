@@ -20,22 +20,39 @@
 
 Requires Windows 10 (version 1809 or later) or Windows 11.
 
-### Download (portable)
+### Installer (recommended)
 
-1. Open the [latest release](https://github.com/riyajkm/display-control/releases/latest) and download the zip for your PC:
-   - `DisplayControl-…-win-x64.zip` for most PCs (Intel / AMD).
-   - `DisplayControl-…-win-arm64.zip` for ARM laptops (Snapdragon).
+1. Download **`DisplayControl-…-setup.exe`** from the [latest release](https://github.com/riyajkm/display-control/releases/latest). One installer works on every PC (Intel, AMD and ARM).
+2. Run it. Windows may show **"Windows protected your PC"** because the download is new and not yet signed: click **More info > Run anyway**.
+3. Choose **Install for me only** (no admin rights needed) or for all users, accept the licence and pick your options:
 
-   Not sure? Settings > System > About > *System type*.
-2. Unzip it to a folder you'll keep, for example `%LOCALAPPDATA%\Programs\Display Control` (paste that into File Explorer's address bar).
-3. Double-click **DisplayControl.exe**. Nothing else to install; .NET is built in.
-4. Windows may show **"Windows protected your PC"** because the download is new and not yet signed. Click **More info > Run anyway**.
-5. The panel opens and the Display Control icon (a monitor with a sun) appears in the taskbar. If you don't see it, click **^** next to the clock and drag it onto the taskbar.
-6. Optional: right-click the icon and turn on **Start with Windows**.
+   <img src="docs/images/setup-tasks.png" alt="Installer options" width="460">
 
-To uninstall, choose **Exit** from the tray menu, delete the folder, and delete `%LOCALAPPDATA%\DisplayControl` (settings and log).
+   - **Create a desktop shortcut**
+   - **Start Display Control when I sign in to Windows**. Recommended: colour matching on laptop screens only applies while the app runs.
+4. Click **Install**, then **Finish** to start Display Control.
 
-**Updating from Brightness Control 1.0.0?** Choose **Exit** in the old app, delete its folder, then run Display Control. Your calibrations, colour matching and *Start with Windows* carry over automatically. The old `%LOCALAPPDATA%\BrightnessControl` folder can be deleted afterwards.
+   <img src="docs/images/setup-finish.png" alt="Installer finished" width="460">
+
+The panel opens and the Display Control icon (a monitor with a sun) appears in the taskbar. If you don't see it, click **^** next to the clock and drag it onto the taskbar. Display Control is also in the Start menu.
+
+**Updating:** run the newer setup. It closes the running app, updates it, and keeps all your settings. Coming from **Brightness Control 1.0.0**? The installer closes the old app; your calibrations, colour matching and *Start with Windows* carry over. You can then delete the old app's folder and `%LOCALAPPDATA%\BrightnessControl`.
+
+### Uninstall
+
+**Settings > Apps > Installed apps > Display Control > Uninstall.** Uninstalling also:
+
+- puts every monitor's colours back exactly as they were before colour matching,
+- removes the *Start with Windows* entry and all shortcuts,
+- asks whether to delete your settings too (calibration, colour matching, log). Keep them if you might reinstall.
+
+<img src="docs/images/uninstall-settings.png" alt="Uninstall asks about settings" width="426">
+
+### Portable (no installer)
+
+Prefer not to install? Download `DisplayControl-…-win-x64.zip` (most PCs) or `-win-arm64.zip` (ARM laptops; check Settings > System > About > *System type*), unzip it to a folder you'll keep and run **DisplayControl.exe**. Nothing else is needed; .NET is built in. Turn on **Start with Windows** from the tray menu if you like.
+
+To remove the portable version: right-click the tray icon, choose **Reset colours** (if you used colour matching) and **Exit**, then delete the folder and `%LOCALAPPDATA%\DisplayControl`.
 
 ### Microsoft Store
 
@@ -118,6 +135,7 @@ Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (`win
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build.ps1          # bin\DisplayControl.exe
 powershell -ExecutionPolicy Bypass -File .\build-release.ps1  # dist\*.zip portable downloads
+powershell -ExecutionPolicy Bypass -File .\build-installer.ps1 # dist\*-setup.exe installer (needs Inno Setup 6)
 dotnet run --file tests/unit.cs -- bin/DisplayControl.dll   # unit tests
 ```
 
@@ -139,7 +157,7 @@ Output: `dist\DisplayControl_<version>.msixbundle` (x64 + arm64, self-contained)
 
 ## Roadmap
 
-**1.0 (this release):** detection that doesn't drop monitors, monitor settings from capabilities, brightness matching, colour matching, follow laptop brightness, theme/DPI/accessibility, Store packaging.
+**1.0:** detection that doesn't drop monitors, monitor settings from capabilities, brightness matching, colour matching, follow laptop brightness, theme/DPI/accessibility, Store packaging, installer.
 
 **Later:**
 
@@ -161,12 +179,13 @@ src/DisplayControl/          app source (.NET 10, Windows Forms), one class per 
   ColorBalance.cs, ColorWizard.cs  colour matching (RGB gain or gamma ramp)
   LaptopWatcher.cs              follow laptop brightness
   Panel.cs, FlatSlider.cs       the flyout UI
-  App.cs, Program.cs            tray icon, menu, startup
+  App.cs, Program.cs            tray icon, menu, startup; --exit / --uninstall for the installer
 packaging/                      MSIX manifest and icons
+installer/                      Inno Setup script and wizard images
 tests/unit.cs                   unit tests
 tools/make-assets.cs            icon generator
 docs/                           privacy policy, Store listing, research, screenshots
-build.ps1, build-release.ps1, build-msix.ps1   build scripts
+build.ps1, build-release.ps1, build-installer.ps1, build-msix.ps1   build scripts
 ```
 
 ## License

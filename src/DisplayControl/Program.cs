@@ -13,9 +13,15 @@ namespace DisplayControl
     {
         static App app;
 
+        // Command line (used by the installer):
+        //   --exit       close a running copy cleanly
+        //   --uninstall  reset matched colours and remove the startup entry (in the running copy, or here if none)
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            bool exitRequest = Array.IndexOf(args, "--exit") >= 0;
+            bool uninstall = Array.IndexOf(args, "--uninstall") >= 0;
+
             // A bug should never take the tray app down: log it, tell the user once, keep running.
             AppInfo.MigrateFromBrightnessControl();   // before Settings or Log are first touched
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -26,14 +32,36 @@ namespace DisplayControl
             bool created;
             using (var mutex = new Mutex(true, "DisplayControl.SingleInstance", out created))
             using (var showRequest = new EventWaitHandle(false, EventResetMode.AutoReset, "DisplayControl.Show"))
+            using (var exitSignal = new EventWaitHandle(false, EventResetMode.AutoReset, "DisplayControl.Exit"))
+            using (var uninstallSignal = new EventWaitHandle(false, EventResetMode.AutoReset, "DisplayControl.Uninstall"))
             {
-                // Already running (e.g. launched again from Start): ask that copy to open its panel.
-                if (!created) { showRequest.Set(); return; }
+                if (!created)
+                {
+                    // Already running. A plain launch (e.g. from Start) asks that copy to open its panel.
+                    if (!exitRequest && !uninstall) { showRequest.Set(); return; }
+                    // The installer waits until the running copy has finished and closed.
+                    (uninstall ? uninstallSignal : exitSignal).Set();
+                    WaitForExit(mutex, uninstall ? 30000 : 10000);
+                    return;
+                }
+                if (exitRequest) return;   // nothing running: nothing to close
+                if (uninstall) { Lifecycle.UninstallWithoutUi(); return; }
+
                 ApplicationConfiguration.Initialize();
                 app = new App();
                 ThreadPool.RegisterWaitForSingleObject(showRequest, delegate { app.ShowFromOtherInstance(); }, null, -1, false);
+                ThreadPool.RegisterWaitForSingleObject(exitSignal, delegate { app.ExitFromSignal(); }, null, -1, false);
+                ThreadPool.RegisterWaitForSingleObject(uninstallSignal, delegate { app.UninstallFromSignal(); }, null, -1, false);
                 Application.Run(app);
             }
+        }
+
+        // The running copy owns the mutex until it exits; acquiring it means it has gone.
+        static void WaitForExit(Mutex mutex, int timeoutMs)
+        {
+            try { if (mutex.WaitOne(timeoutMs)) mutex.ReleaseMutex(); }
+            catch (AbandonedMutexException) { mutex.ReleaseMutex(); }   // it exited without releasing; also fine
+            catch (Exception) { }
         }
 
         static void Report(Exception e)
