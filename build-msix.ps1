@@ -5,7 +5,8 @@
 #   powershell -ExecutionPolicy Bypass -File .\build-msix.ps1
 # Store build - use the values from Partner Center > Product management > Product identity:
 #   powershell -ExecutionPolicy Bypass -File .\build-msix.ps1 -IdentityName "12345Name.BrightnessControl" `
-#       -Publisher "CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" -PublisherDisplayName "Your publisher name"
+#       -Publisher "CN=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" -PublisherDisplayName "Your publisher name" `
+#       -DisplayName "The app name you reserved"
 # The Store signs the package itself, so Store uploads don't need a certificate.
 
 param(
@@ -13,6 +14,7 @@ param(
     [string]$IdentityName = "BrightnessControl.Dev",
     [string]$Publisher = "CN=BrightnessControlDev",
     [string]$PublisherDisplayName = "Riyaj Kafardeen",
+    [string]$DisplayName = "Brightness Control",
     [string[]]$Architectures = @("x64", "arm64")
 )
 
@@ -47,7 +49,8 @@ foreach ($arch in $Architectures) {
 
     $manifest = Get-Content (Join-Path $root "packaging\Package.appxmanifest") -Raw
     $manifest = $manifest.Replace('$IDENTITY_NAME$', $IdentityName).Replace('$PUBLISHER$', $Publisher).
-        Replace('$PUBLISHER_DISPLAY_NAME$', $PublisherDisplayName).Replace('$VERSION$', $Version).Replace('$ARCH$', $arch)
+        Replace('$PUBLISHER_DISPLAY_NAME$', $PublisherDisplayName).Replace('$DISPLAY_NAME$', $DisplayName).
+        Replace('$VERSION$', $Version).Replace('$ARCH$', $arch)
     Set-Content (Join-Path $layout "AppxManifest.xml") $manifest -Encoding UTF8
 
     # resources.pri lets Windows pick the right icon size (scale-200, targetsize-24, unplated...).

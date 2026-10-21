@@ -20,7 +20,7 @@ The name has to be reserved in Partner Center first (Apps and games > New produc
 2. `Screen Brightness Control`
 3. `Brightness Control - DDC/CI`
 
-If you reserve a different name, update the manifest `DisplayName` to match before uploading the package.
+If you reserve a different name, build the package with it: `build-msix.ps1 ... -DisplayName "<reserved name>"` (see the README). That fills in all three display names in the manifest.
 
 ---
 
@@ -197,5 +197,5 @@ Requirements: PNG, at least 1366 x 768 (up to 3840 x 2160), 50 MB max each, up t
 **Notes for certification** (Submission options > Notes for certification), suggested text:
 
 ```text
-Brightness Control runs in the system tray; click the tray icon to open the brightness panel. External monitor controls appear only on monitors that support DDC/CI (most desktop monitors, often needs DDC/CI enabled in the monitor menu). On a VM or a PC without such a monitor, the panel shows only the screens Windows can control, which is expected. The app makes no network connections and collects no data.
+Brightness Control runs in the system tray. Launching it from Start (including again while it is running) opens the brightness panel; Windows may place a new app's tray icon in the hidden area behind the ^ arrow next to the clock. External monitor controls appear only on monitors that support DDC/CI (most desktop monitors, often needs DDC/CI enabled in the monitor menu). On a VM or a PC without such a monitor, the panel shows only the screens Windows can control, which is expected. The app makes no network connections and collects no data.
 ```
