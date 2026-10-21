@@ -31,12 +31,17 @@ The monitor itself has to allow software control. In the monitor's on-screen men
 2. Set **ECO Mode** to **Standard** and turn off **Dynamic Contrast** — these modes lock brightness.
 3. Connect directly to the computer (docks and USB display adapters usually block DDC/CI).
 
+Screens that don't answer stay in the panel and are re-checked each time you open it, after display changes and after the PC wakes up. To see why a screen isn't working, right-click the tray icon and choose **Open detection log** (`%LOCALAPPDATA%\BrightnessControl\detect.log`).
+
 ## Roadmap
 
 Working toward a Microsoft Store release:
 
 - [x] Move to an SDK-style .NET 10 WinForms project
-- [ ] Detect every monitor reliably (DDC/CI, WMI, and fallbacks for docks, adapters and laptops)
+- [x] Detect every monitor reliably: retries, never drop a screen, re-check on open / display change / wake, detection log
+- [ ] Software dimming fallback for screens with no DDC/CI or WMI control
+- [ ] Monitor controls read from each monitor's capabilities: contrast, colour preset, input source (see [docs/feature-research.md](docs/feature-research.md))
+- [ ] Follow the laptop's brightness keys, perceptual matching across monitors, schedules / sunrise-sunset
 - [ ] Per-monitor DPI support (enabled in the project; UI layout still needs scaling work), light/dark theme that follows Windows
 - [ ] Open the panel on first launch and when launched again
 - [ ] Advanced options: global hotkeys, schedules, custom presets, contrast and input switching
